@@ -8,6 +8,7 @@ import { Loading, Problem } from '../../components/Status'
 import { button, input, kicker, label } from '../../components/styles'
 import { articleHref, edition } from '../../edition'
 import { errorMessage } from '../../lib/api'
+import { ahead, localInput } from '../../lib/format'
 import { toJpeg } from '../../lib/image'
 import {
   createArticle,
@@ -49,6 +50,8 @@ function Form({ token, article, members }: { token: string; article: Article | n
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const coverRef = useRef<HTMLInputElement>(null)
+  // The time to publish at, while choosing one
+  const [planning, setPlanning] = useState<string | null>(null)
 
   const change = (patch: Partial<ArticleInput>) => {
     setDraft(current => ({ ...current, ...patch }))
@@ -89,13 +92,29 @@ function Form({ token, article, members }: { token: string; article: Article | n
     run('publish', async () => {
       const current = await save()
       setSaved(await publishArticle(token, current.id))
+      setPlanning(null)
       setNotice('Publisert.')
+    })
+  const schedule = (at: string) =>
+    run('schedule', async () => {
+      const current = await save()
+      const result = await publishArticle(token, current.id, new Date(at).toISOString())
+      setSaved(result)
+      setPlanning(null)
+      setNotice(result.scheduled ? `Publiseres ${ahead(result.publishedAt!)}.` : 'Publisert.')
     })
   const unpublish = () =>
     run('unpublish', async () => {
+      const wasScheduled = saved!.scheduled
       setSaved(await unpublishArticle(token, saved!.id))
-      setNotice('Trukket tilbake. Saken er et utkast igjen.')
+      setNotice(wasScheduled ? 'Planleggingen er avbrutt. Saken er et utkast igjen.' : 'Trukket tilbake. Saken er et utkast igjen.')
     })
+  // Next full hour, at least half an hour ahead
+  const suggestedTime = () => {
+    const date = new Date(Date.now() + 90 * 60_000)
+    date.setMinutes(0, 0, 0)
+    return localInput(date)
+  }
   const remove = () => {
     if (!saved || !window.confirm(`Slette «${saved.title}» for godt?`)) return
     void run('delete', async () => {
@@ -109,7 +128,8 @@ function Form({ token, article, members }: { token: string; article: Article | n
       change({ coverImage: url })
     })
 
-  const published = saved?.status === 'published'
+  const scheduled = !!saved?.scheduled
+  const published = saved?.status === 'published' && !scheduled
 
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr_18rem]">
@@ -150,28 +170,76 @@ function Form({ token, article, members }: { token: string; article: Article | n
       <aside className="space-y-6">
         <div className="space-y-2 rounded-md border border-line p-4">
           <p className="font-ui text-[13px]">
-            <span className="font-semibold">{published ? 'Publisert' : saved ? 'Utkast' : 'Ny sak'}</span>
+            <span className="font-semibold">{published ? 'Publisert' : scheduled ? 'Planlagt' : saved ? 'Utkast' : 'Ny sak'}</span>
             {dirty && <span className="text-muted"> · endringer ikke lagret</span>}
           </p>
+          {scheduled && <p className="font-ui text-[13px]">Publiseres {ahead(saved.publishedAt!)}. Til da ser bare redaksjonen saken.</p>}
           <div className="flex flex-wrap gap-2">
-            <button type="button" className={button.secondary} disabled={!!busy || !draft.title.trim()} onClick={() => void run('save', async () => void (await save(), setNotice('Lagret.')))}>
-              {busy === 'save' ? 'Lagrer …' : 'Lagre'}
-            </button>
-            {published ? (
-              <button type="button" className={button.secondary} disabled={!!busy} onClick={() => void unpublish()}>
-                Trekk tilbake
-              </button>
+            {published || scheduled ? (
+              <>
+                <button type="button" className={dirty ? button.primary : button.secondary} disabled={!!busy || !dirty || !draft.title.trim()} onClick={() => void run('save', async () => void (await save(), setNotice('Oppdatert.')))}>
+                  {busy === 'save' ? 'Lagrer …' : 'Oppdater'}
+                </button>
+                {scheduled && (
+                  <button type="button" className={button.secondary} disabled={!!busy || !draft.title.trim()} onClick={() => void publish()}>
+                    {busy === 'publish' ? 'Publiserer …' : 'Publiser nå'}
+                  </button>
+                )}
+                <button type="button" className={button.secondary} disabled={!!busy} onClick={() => void unpublish()}>
+                  {scheduled ? 'Avbryt planlegging' : 'Trekk tilbake'}
+                </button>
+              </>
             ) : (
-              <button type="button" className={button.primary} disabled={!!busy || !draft.title.trim()} onClick={() => void publish()}>
-                {busy === 'publish' ? 'Publiserer …' : 'Publiser'}
-              </button>
-            )}
-            {published && dirty && (
-              <button type="button" className={button.primary} disabled={!!busy} onClick={() => void publish()}>
-                Oppdater
-              </button>
+              <>
+                <button type="button" className={button.secondary} disabled={!!busy || !draft.title.trim()} onClick={() => void run('save', async () => void (await save(), setNotice('Lagret.')))}>
+                  {busy === 'save' ? 'Lagrer …' : 'Lagre'}
+                </button>
+                <button type="button" className={button.primary} disabled={!!busy || !draft.title.trim()} onClick={() => void publish()}>
+                  {busy === 'publish' ? 'Publiserer …' : 'Publiser'}
+                </button>
+              </>
             )}
           </div>
+          {!published &&
+            (planning === null ? (
+              <button
+                type="button"
+                className="block font-ui text-[13px] font-semibold underline-offset-4 hover:underline disabled:opacity-40"
+                disabled={!!busy || !draft.title.trim()}
+                onClick={() => setPlanning(scheduled ? localInput(new Date(saved.publishedAt!)) : suggestedTime())}
+              >
+                {scheduled ? 'Endre tidspunkt' : 'Planlegg publisering'}
+              </button>
+            ) : (
+              <form
+                className="space-y-2 rounded border border-line bg-soft p-3"
+                onSubmit={event => {
+                  event.preventDefault()
+                  void schedule(planning)
+                }}
+              >
+                <label htmlFor="publish-at" className={label}>
+                  Publiseres
+                </label>
+                <input
+                  id="publish-at"
+                  type="datetime-local"
+                  required
+                  min={localInput(new Date())}
+                  value={planning}
+                  onChange={event => setPlanning(event.target.value)}
+                  className={input}
+                />
+                <div className="flex flex-wrap gap-2">
+                  <button type="submit" className={button.primary} disabled={!!busy || !planning}>
+                    {busy === 'schedule' ? 'Planlegger …' : scheduled ? 'Endre' : 'Planlegg'}
+                  </button>
+                  <button type="button" className={button.secondary} onClick={() => setPlanning(null)}>
+                    Avbryt
+                  </button>
+                </div>
+              </form>
+            ))}
           {saved && (
             <Link to={articleHref(saved.slug)} className="inline-block font-ui text-[13px] font-semibold underline-offset-4 hover:underline">
               {published ? 'Vis saken' : 'Forhåndsvis'}
