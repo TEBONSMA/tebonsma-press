@@ -34,7 +34,7 @@ const inputOf = (article: Article): ArticleInput => ({
   lead: article.lead,
   body: article.body ?? '',
   tags: article.tags,
-  authors: article.authors.map(a => ({ id: a.id, alias: a.alias ?? '' })),
+  authors: article.authors.map(a => (a.id ? { id: a.id, alias: a.alias ?? '', name: '' } : { id: null, alias: '', name: a.name })),
   visibility: article.visibility,
   coverImage: article.coverImage,
   coverCaption: article.coverCaption,
@@ -80,7 +80,8 @@ function Form({ token, article, members }: { token: string; article: Article | n
 
   // Saves what is in the form; a new article gets its own address
   const save = async () => {
-    const input = { ...draft, tags: tags() }
+    // An author without an account and without a name is left out
+    const input = { ...draft, tags: tags(), authors: draft.authors.filter(a => a.id || a.name.trim()) }
     const result = saved ? await updateArticle(token, saved.id, input) : await createArticle(token, input)
     setSaved(result)
     setDirty(false)

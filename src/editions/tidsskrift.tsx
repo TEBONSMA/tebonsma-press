@@ -326,15 +326,22 @@ function Authors({ article }: { article: Article }) {
       </button>
       {open && (
         <ul className="mt-3 space-y-2 not-italic text-ink">
-          {article.authors.map(author => (
-            <li key={author.id}>
-              <a href={memberHref(author.id)} className="group flex items-center gap-3">
-                <Avatar member={author} className="h-9 w-9 text-[12px]" />
-                <span>
-                  <span className="group-hover:underline">{authorName(author)}</span>
-                  <span className="block text-[14px] text-muted">Brorskapet TEBONSMA</span>
+          {article.authors.map((author, i) => (
+            <li key={author.id ?? `${author.name}-${i}`}>
+              {author.id ? (
+                <a href={memberHref(author.id)} className="group flex items-center gap-3">
+                  <Avatar member={author} className="h-9 w-9 text-[12px]" />
+                  <span>
+                    <span className="group-hover:underline">{authorName(author)}</span>
+                    <span className="block text-[14px] text-muted">Brorskapet TEBONSMA</span>
+                  </span>
+                </a>
+              ) : (
+                <span className="flex items-center gap-3">
+                  <Avatar member={author} className="h-9 w-9 text-[12px]" />
+                  {author.name}
                 </span>
-              </a>
+              )}
             </li>
           ))}
         </ul>

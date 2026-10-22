@@ -10,11 +10,15 @@ export default function Byline({ article, photos = true }: { article: Article; p
     <div className="flex items-center gap-3 font-ui text-[14px]">
       {photos && article.authors.length > 0 && (
         <div className="flex -space-x-2">
-          {article.authors.map(author => (
-            <a key={author.id} href={memberHref(author.id)} aria-hidden="true" tabIndex={-1}>
-              <Avatar member={author} className="h-9 w-9 text-[12px] ring-2 ring-paper" />
-            </a>
-          ))}
+          {article.authors.map((author, i) =>
+            author.id ? (
+              <a key={author.id} href={memberHref(author.id)} aria-hidden="true" tabIndex={-1}>
+                <Avatar member={author} className="h-9 w-9 text-[12px] ring-2 ring-paper" />
+              </a>
+            ) : (
+              <Avatar key={`${author.name}-${i}`} member={author} className="h-9 w-9 text-[12px] ring-2 ring-paper" />
+            ),
+          )}
         </div>
       )}
       <div className="leading-snug">
