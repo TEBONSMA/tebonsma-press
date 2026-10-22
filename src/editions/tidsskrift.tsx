@@ -73,7 +73,7 @@ export function Header() {
 
   return (
     <header>
-      <div className={`${wrap} flex items-center justify-between pb-2 pt-2 md:justify-end md:pb-9 md:pt-3`}>
+      <div className={`${wrap} flex items-center justify-between pb-2 pt-2 md:justify-end md:pb-3 md:pt-3`}>
         <MenuButton open={menu.open} onClick={menu.toggle} />
         <UserLinks />
       </div>
@@ -83,7 +83,7 @@ export function Header() {
             <span>Tidsskrift for Brorskapet TEBONSMA</span>
             <span>{longDate()}</span>
           </div>
-          <div className={`flex md:justify-center ${front ? 'pb-1 pt-4 md:pb-7 md:pt-3' : 'pb-1 pt-3 md:pb-4 md:pt-1'}`}>
+          <div className={`flex md:justify-center ${front ? 'pb-1 pt-4 md:pb-2 md:pt-5' : 'pb-1 pt-3 md:pb-1 md:pt-3'}`}>
             <Link to="/" aria-label={`${edition.name}, forsiden`}>
               <Wordmark large={front} />
             </Link>
