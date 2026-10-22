@@ -21,6 +21,7 @@ import {
 import { apiUrl, errorMessage } from '../../lib/api'
 import { toJpeg } from '../../lib/image'
 import { uploadImage } from '../../lib/press'
+import { Figure, type FigureSize } from './figure'
 
 interface ToolProps {
   label: string
@@ -61,7 +62,9 @@ export default function RichEditor({ token, initialHtml, onChange }: { token: st
         codeBlock: false,
         link: { openOnClick: false, autolink: true, protocols: ['http', 'https', 'mailto'] },
       }),
+      // Bare pictures from before figures, shown in full width
       Image,
+      Figure,
     ],
     // Pictures are kept as /press/images/<id>; in the editor they need the API's address
     content: initialHtml.replace(/src="\/press\/images\//g, `src="${apiUrl('/press/images/')}`),
@@ -86,6 +89,7 @@ export default function RichEditor({ token, initialHtml, onChange }: { token: st
       quote: !!current?.isActive('blockquote'),
       bullet: !!current?.isActive('bulletList'),
       ordered: !!current?.isActive('orderedList'),
+      figure: current?.isActive('figure') ? ((current.getAttributes('figure').size as FigureSize) ?? 'full') : null,
       undo: !!current?.can().undo(),
       redo: !!current?.can().redo(),
     }),
@@ -106,7 +110,15 @@ export default function RichEditor({ token, initialHtml, onChange }: { token: st
     setError(null)
     try {
       const { url } = await uploadImage(token, await toJpeg(file))
-      editor.chain().focus().setImage({ src: apiUrl(url), alt: '' }).run()
+      // A figure with an empty caption to write in, then a paragraph to go on with the text
+      editor
+        .chain()
+        .focus()
+        .insertContent([
+          { type: 'figure', attrs: { src: apiUrl(url), alt: '', size: 'full' } },
+          { type: 'paragraph' },
+        ])
+        .run()
     } catch (err) {
       setError(errorMessage(err))
     } finally {
@@ -130,6 +142,29 @@ export default function RichEditor({ token, initialHtml, onChange }: { token: st
         <Tool label="Nummerert liste" icon={ListOrdered} active={active.ordered} onClick={() => editor.chain().focus().toggleOrderedList().run()} />
         <Tool label="Skillelinje" icon={Minus} onClick={() => editor.chain().focus().setHorizontalRule().run()} />
         <Tool label={uploading ? 'Laster opp bilde …' : 'Sett inn bilde'} icon={ImagePlus} disabled={uploading} onClick={() => fileRef.current?.click()} />
+        {active.figure && (
+          <>
+            <span className="mx-1 w-px self-stretch bg-line" />
+            {(
+              [
+                ['small', 'Liten'],
+                ['medium', 'Middels'],
+                ['full', 'Hel bredde'],
+              ] as const
+            ).map(([size, name]) => (
+              <button
+                key={size}
+                type="button"
+                onMouseDown={e => e.preventDefault()}
+                onClick={() => editor.chain().focus().updateAttributes('figure', { size }).run()}
+                aria-pressed={active.figure === size}
+                className={`rounded px-2 font-ui text-[13px] font-semibold ${active.figure === size ? 'bg-ink text-paper' : 'hover:bg-soft'}`}
+              >
+                {name}
+              </button>
+            ))}
+          </>
+        )}
         <span className="mx-1 w-px self-stretch bg-line" />
         <Tool label="Angre" icon={Undo2} disabled={!active.undo} onClick={() => editor.chain().focus().undo().run()} />
         <Tool label="Gjør om" icon={Redo2} disabled={!active.redo} onClick={() => editor.chain().focus().redo().run()} />
