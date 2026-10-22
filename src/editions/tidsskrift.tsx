@@ -3,7 +3,6 @@ import { Link, NavLink, useLocation } from 'react-router-dom'
 import { Search } from 'lucide-react'
 import ArticleBody from '../components/ArticleBody'
 import Avatar from '../components/Avatar'
-import LockedNotice from '../components/LockedNotice'
 import Picture from '../components/Picture'
 import { articleHref, edition, sectionHref } from '../edition'
 import { ahead, longDate, names, shortDate } from '../lib/format'
@@ -154,7 +153,7 @@ export function Footer() {
   )
 }
 
-// The type of article over its title, and whether it is shut to visitors
+// The type of article over its title
 function Kicker({ article }: { article: Article }) {
   return (
     <div className={`${caps} text-[#747476]`}>
@@ -163,7 +162,6 @@ function Kicker({ article }: { article: Article }) {
           {article.section}
         </Link>
       )}
-      {article.locked && <span className="text-muted">{article.section && ' · '}For medlemmer</span>}
     </div>
   )
 }
@@ -367,9 +365,9 @@ export function ArticleView({ article }: { article: Article }) {
   const cite = `${byline(article) || 'Redaksjonen'}. ${article.title}. ${citation.short}. doi: ${citation.doi}`
   const contents = [
     article.lead && { id: 'sammendrag', text: edition.leadLabel, sub: [] },
-    !article.locked && html && { id: 'artikkel', text: 'Artikkel', sub: headings },
-    !article.locked && article.tags.length > 0 && { id: 'nokkelord', text: edition.tagsLabel, sub: [] },
-    !article.locked && { id: 'siter', text: 'Sitér artikkelen', sub: [] },
+    html && { id: 'artikkel', text: 'Artikkel', sub: headings },
+    article.tags.length > 0 && { id: 'nokkelord', text: edition.tagsLabel, sub: [] },
+    { id: 'siter', text: 'Sitér artikkelen', sub: [] },
   ].filter(item => !!item)
   const published = !article.publishedAt
     ? 'Ikke publisert'
@@ -422,33 +420,27 @@ export function ArticleView({ article }: { article: Article }) {
               {article.coverCaption && <figcaption className="mt-2 text-[14px] italic text-muted">{article.coverCaption}</figcaption>}
             </figure>
           )}
-          {article.locked ? (
-            <LockedNotice />
-          ) : (
-            <>
-              {html && (
-                <section id="artikkel" className="mt-10">
-                  <ArticleBody html={html} />
-                </section>
-              )}
-              {article.tags.length > 0 && (
-                <section id="nokkelord" className="mt-10">
-                  <h2 className="border-t border-line pt-[13px] font-headline text-[22px] font-medium leading-none text-black">{edition.tagsLabel}</h2>
-                  <p className="mt-3">
-                    {article.tags.map((tag, i) => (
-                      <Fragment key={tag}>
-                        {i > 0 && ', '}
-                        <Link to={`/arkiv?tag=${encodeURIComponent(tag)}`} className="text-accent hover:underline">
-                          {tag}
-                        </Link>
-                      </Fragment>
-                    ))}
-                  </p>
-                </section>
-              )}
-              <Cite text={cite} />
-            </>
+          {html && (
+            <section id="artikkel" className="mt-10">
+              <ArticleBody html={html} />
+            </section>
           )}
+          {article.tags.length > 0 && (
+            <section id="nokkelord" className="mt-10">
+              <h2 className="border-t border-line pt-[13px] font-headline text-[22px] font-medium leading-none text-black">{edition.tagsLabel}</h2>
+              <p className="mt-3">
+                {article.tags.map((tag, i) => (
+                  <Fragment key={tag}>
+                    {i > 0 && ', '}
+                    <Link to={`/arkiv?tag=${encodeURIComponent(tag)}`} className="text-accent hover:underline">
+                      {tag}
+                    </Link>
+                  </Fragment>
+                ))}
+              </p>
+            </section>
+          )}
+          <Cite text={cite} />
         </div>
 
         <aside className="self-start border-t-[3px] border-black bg-soft text-[14px] leading-[18px] text-black">
@@ -474,13 +466,11 @@ export function ArticleView({ article }: { article: Article }) {
                 Skriv ut
               </button>
             </li>
-            {!article.locked && (
-              <li className="border-t border-line">
-                <a href="#siter" className={`${caps} block px-3 py-3 text-accent hover:underline`}>
-                  Sitér artikkelen
-                </a>
-              </li>
-            )}
+            <li className="border-t border-line">
+              <a href="#siter" className={`${caps} block px-3 py-3 text-accent hover:underline`}>
+                Sitér artikkelen
+              </a>
+            </li>
           </ul>
         </aside>
       </div>

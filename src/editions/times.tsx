@@ -1,7 +1,6 @@
 import { Link, NavLink } from 'react-router-dom'
 import ArticleBody from '../components/ArticleBody'
 import Byline from '../components/Byline'
-import LockedNotice from '../components/LockedNotice'
 import Picture from '../components/Picture'
 import { kicker } from '../components/styles'
 import { articleHref, edition, sectionHref } from '../edition'
@@ -238,13 +237,13 @@ export function ArticleFooter({ article }: { article: Article }) {
   )
 }
 
-// The article: its head, its text (or that it is for members) and its tags
+// The article: its head, its text and its tags
 export function ArticleView({ article }: { article: Article }) {
   return (
     <>
       <ArticleHeader article={article} />
-      <div className="mx-auto mt-8 max-w-[720px] px-4">{article.locked ? <LockedNotice /> : article.body && <ArticleBody html={article.body} />}</div>
-      {!article.locked && <ArticleFooter article={article} />}
+      <div className="mx-auto mt-8 max-w-[720px] px-4">{article.body && <ArticleBody html={article.body} />}</div>
+      <ArticleFooter article={article} />
     </>
   )
 }

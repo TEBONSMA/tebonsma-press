@@ -18,10 +18,8 @@ export interface Article {
   section: string
   title: string
   lead: string
-  // null in lists, and for a visitor on a members-only article
+  // null in lists
   body: string | null
-  // A members-only article seen by a visitor
-  locked: boolean
   tags: string[]
   authors: Member[]
   coverImage: string | null
