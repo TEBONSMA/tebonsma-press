@@ -6,7 +6,7 @@ import { Loading, Problem } from '../../components/Status'
 import { button, kicker } from '../../components/styles'
 import { edition } from '../../edition'
 import { errorMessage } from '../../lib/api'
-import { when } from '../../lib/format'
+import { ahead, when } from '../../lib/format'
 import { listDesk, setFront, type Article } from '../../lib/press'
 import { useLoad } from '../../state/useLoad'
 import { useTitle } from '../../state/useTitle'
@@ -90,6 +90,7 @@ function Arrange({ token, published }: { token: string; published: Article[] }) 
                   <div className="min-w-0 flex-1">
                     {article.section && <div className={`${kicker} text-muted`}>{article.section}</div>}
                     <div className="truncate text-[16px] font-semibold">{article.title}</div>
+                    {article.scheduled && <div className="font-ui text-[12px] text-muted">Kommer på forsiden {ahead(article.publishedAt!)}</div>}
                   </div>
                   <button type="button" onClick={() => move(i, i - 1)} disabled={i === 0} aria-label="Flytt opp" className="rounded p-1 hover:bg-soft disabled:opacity-30">
                     <ArrowUp size={15} aria-hidden="true" />
@@ -116,7 +117,9 @@ function Arrange({ token, published }: { token: string; published: Article[] }) 
               <li key={article.id} className="flex items-center gap-3 py-2.5">
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-[16px] font-semibold">{article.title}</div>
-                  <div className="font-ui text-[12px] text-muted">{article.publishedAt && when(article.publishedAt)}</div>
+                  <div className="font-ui text-[12px] text-muted">
+                    {article.scheduled ? `Planlagt ${ahead(article.publishedAt!)}` : article.publishedAt && when(article.publishedAt)}
+                  </div>
                 </div>
                 <button type="button" className={`${button.secondary} h-8 px-3 text-[13px]`} onClick={() => update([...order, article.id])}>
                   Legg på forsiden
