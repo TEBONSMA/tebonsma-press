@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { Menu, X } from 'lucide-react'
 import { useAuth } from '../auth/AuthContext'
 import { edition } from '../edition'
 import type { Article } from '../lib/press'
@@ -30,6 +31,22 @@ export function UserLinks({ className = '' }: { className?: string }) {
         </button>
       )}
     </div>
+  )
+}
+
+// The menu button on a phone (not on wider screens): three lines, a cross while the menu is open
+export function MenuButton({ open, onClick, className = '' }: { open: boolean; onClick: () => void; className?: string }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-expanded={open}
+      aria-controls="mobilmeny"
+      aria-label={open ? 'Lukk menyen' : 'Meny'}
+      className={`-ml-2 p-2 text-black md:hidden ${className}`}
+    >
+      {open ? <X size={26} strokeWidth={1.75} aria-hidden="true" /> : <Menu size={26} strokeWidth={1.75} aria-hidden="true" />}
+    </button>
   )
 }
 
