@@ -7,17 +7,28 @@ import { kicker } from '../components/styles'
 import { articleHref, edition, sectionHref } from '../edition'
 import { longDate, when } from '../lib/format'
 import type { Article } from '../lib/press'
+import { useMobileMenu } from '../state/useMobileMenu'
 import { useSections } from '../state/useSections'
-import { FamilyLinks, Tags, UserLinks } from './shared'
+import { FamilyLinks, MenuButton, Tags, UserLinks } from './shared'
 
 // The Tebonsma Times: a newspaper. Black on white, the fraktur masthead, a top story and a grid.
 
 const navItem = ({ isActive }: { isActive: boolean }) =>
   `whitespace-nowrap px-3 py-2.5 font-ui text-[12px] font-bold uppercase tracking-[0.08em] ${isActive ? 'underline underline-offset-[6px]' : 'hover:underline hover:underline-offset-[6px]'}`
 
+// On a phone, a list under the masthead, opened with the menu button
+const mobileItem = ({ isActive }: { isActive: boolean }) =>
+  `block py-3 font-ui text-[13px] font-bold uppercase tracking-[0.08em] ${isActive ? 'underline underline-offset-[6px]' : ''}`
+
 export function Header() {
   const sections = useSections()
+  const menu = useMobileMenu()
   const volume = new Date().getFullYear() - 2020
+  const items = [
+    { to: '/', name: 'Forsiden' },
+    ...sections.map(section => ({ to: sectionHref(section), name: section })),
+    { to: '/arkiv', name: 'Arkiv' },
+  ]
   return (
     <header className="mx-auto w-full max-w-6xl px-4">
       <div className="flex items-center justify-between gap-4 py-3 font-ui text-[12px]">
@@ -26,29 +37,33 @@ export function Header() {
         </span>
         <UserLinks />
       </div>
-      <Link to="/" className="block py-3 sm:py-5" aria-label={`${edition.name}, forsiden`}>
-        <img src="/times/masthead.svg" alt={edition.name} className="mx-auto h-9 w-auto sm:h-14 lg:h-[68px]" />
-      </Link>
-      <nav aria-label="Seksjoner" className="border-y-4 border-double border-ink">
-        <ul className="flex justify-start overflow-x-auto overflow-y-hidden sm:justify-center">
-          <li>
-            <NavLink to="/" end className={navItem}>
-              Forsiden
-            </NavLink>
-          </li>
-          {sections.map(section => (
-            <li key={section}>
-              <NavLink to={sectionHref(section)} className={navItem}>
-                {section}
+      <div className="relative flex items-center justify-center py-3 sm:py-5">
+        <MenuButton open={menu.open} onClick={menu.toggle} className="absolute left-0" />
+        <Link to="/" aria-label={`${edition.name}, forsiden`}>
+          <img src="/times/masthead.svg" alt={edition.name} className="h-8 w-auto min-[400px]:h-9 sm:h-14 lg:h-[68px]" />
+        </Link>
+      </div>
+      <nav aria-label="Seksjoner" className={`border-t-4 border-double border-ink md:border-b-4 ${menu.open ? 'border-b-4' : ''}`}>
+        <ul className="hidden justify-center overflow-x-auto overflow-y-hidden [scrollbar-width:none] md:flex">
+          {items.map(item => (
+            <li key={item.to}>
+              <NavLink to={item.to} end={item.to === '/'} className={navItem}>
+                {item.name}
               </NavLink>
             </li>
           ))}
-          <li>
-            <NavLink to="/arkiv" className={navItem}>
-              Arkiv
-            </NavLink>
-          </li>
         </ul>
+        {menu.open && (
+          <ul id="mobilmeny" className="divide-y divide-line md:hidden">
+            {items.map(item => (
+              <li key={item.to}>
+                <NavLink to={item.to} end={item.to === '/'} onClick={menu.close} className={mobileItem}>
+                  {item.name}
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+        )}
       </nav>
     </header>
   )
