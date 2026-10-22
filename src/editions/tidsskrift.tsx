@@ -9,8 +9,9 @@ import { articleHref, edition, sectionHref } from '../edition'
 import { ahead, longDate, names, shortDate } from '../lib/format'
 import type { Article } from '../lib/press'
 import { citationOf } from '../lib/citation'
+import { useMobileMenu } from '../state/useMobileMenu'
 import { useSections } from '../state/useSections'
-import { FamilyLinks, UserLinks } from './shared'
+import { FamilyLinks, MenuButton, UserLinks } from './shared'
 
 // Tebonsma Tidsskrift: a scientific journal, made to look like the Norwegian medical journal.
 // Georgia on white in a narrow page, small grey capitals, blue links, thin rules and a thick
@@ -49,9 +50,13 @@ function Wordmark({ large }: { large?: boolean }) {
 
 const navItem = ({ isActive }: { isActive: boolean }) =>
   `${caps} flex items-center gap-1.5 whitespace-nowrap px-2 py-4 ${isActive ? 'text-black' : 'text-muted hover:text-black'}`
+// On a phone, a list under the name, opened with the menu button
+const mobileItem = ({ isActive }: { isActive: boolean }) =>
+  `flex items-center gap-1.5 px-4 py-[13px] font-ui text-[14px] uppercase tracking-[0.1em] text-black ${isActive ? 'underline underline-offset-[5px]' : ''}`
 
 export function Header() {
   const sections = useSections()
+  const menu = useMobileMenu()
   const front = useLocation().pathname === '/'
   const top = useRef<HTMLDivElement>(null)
   // Once the name has scrolled away, its mark goes into the menu, which stays at the top
@@ -71,26 +76,27 @@ export function Header() {
       </div>
       <div ref={top} className={wrap}>
         <div className="border-t border-line">
+          <MenuButton open={menu.open} onClick={menu.toggle} className="mt-1" />
           <div className={`${caps} hidden justify-between pt-2.5 font-semibold text-muted md:flex`}>
             <span>Tidsskrift for Brorskapet TEBONSMA</span>
             <span>{longDate()}</span>
           </div>
-          <div className={`flex justify-center ${front ? 'pb-7 pt-6 md:pt-3' : 'pb-5 pt-4 md:pt-1'}`}>
+          <div className={`flex md:justify-center ${front ? 'pb-5 pt-2 md:pb-7 md:pt-3' : 'pb-4 pt-1'}`}>
             <Link to="/" aria-label={`${edition.name}, forsiden`}>
               <Wordmark large={front} />
             </Link>
           </div>
         </div>
       </div>
-      <nav aria-label={edition.sectionsLabel} className="sticky top-0 z-20 bg-paper">
+      <nav aria-label={edition.sectionsLabel} className="bg-paper md:sticky md:top-0 md:z-20">
         <div className={wrap}>
-          <div className="flex items-center border-b-[3px] border-t border-b-black border-t-line">
+          <div className={`border-b-[3px] border-b-black md:flex md:items-center md:border-t md:border-t-line ${menu.open ? 'border-t border-t-line' : ''}`}>
             {past && (
-              <Link to="/" aria-label="Forsiden" className="mr-2 flex shrink-0 text-[34px]">
+              <Link to="/" aria-label="Forsiden" className="mr-2 hidden shrink-0 text-[34px] md:flex">
                 <Mark />
               </Link>
             )}
-            <ul className="flex flex-1 overflow-x-auto overflow-y-hidden [scrollbar-width:none] lg:justify-between">
+            <ul className="hidden flex-1 overflow-x-auto overflow-y-hidden [scrollbar-width:none] md:flex lg:justify-between">
               {sections.map(section => (
                 <li key={section}>
                   <NavLink to={sectionHref(section)} className={navItem}>
@@ -104,6 +110,22 @@ export function Header() {
                 </NavLink>
               </li>
             </ul>
+            {menu.open && (
+              <ul id="mobilmeny" className="py-1 md:hidden">
+                {sections.map(section => (
+                  <li key={section}>
+                    <NavLink to={sectionHref(section)} onClick={menu.close} className={mobileItem}>
+                      {section}
+                    </NavLink>
+                  </li>
+                ))}
+                <li>
+                  <NavLink to="/arkiv" onClick={menu.close} className={mobileItem}>
+                    Søk <Search size={15} aria-hidden="true" />
+                  </NavLink>
+                </li>
+              </ul>
+            )}
           </div>
         </div>
       </nav>
