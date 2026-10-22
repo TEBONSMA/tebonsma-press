@@ -113,6 +113,37 @@ body {
     height: auto;
   }
 
+  /* Pictures in the text: small ones beside the text on a wide screen, medium ones centred */
+  .article-body figure[data-size='medium'] {
+    width: 70%;
+    margin-inline: auto;
+  }
+
+  @media (min-width: 640px) {
+    .article-body figure[data-size='small'] {
+      float: right;
+      width: 42%;
+      margin: 0.35em 0 1em 1.5em;
+    }
+  }
+
+  .article-body::after {
+    content: '';
+    display: block;
+    clear: both;
+  }
+
+  /* An empty caption in the editor says what goes there */
+  .editor-body figcaption:has(> br.ProseMirror-trailingBreak:only-child)::before,
+  .editor-body figcaption:empty::before {
+    content: 'Skriv bildetekst …';
+    color: var(--muted);
+  }
+
+  .editor-body figure.ProseMirror-selectednode img {
+    outline: 3px solid var(--accent);
+  }
+
   .article-body figcaption {
     margin-top: 0.5em;
     font-family: var(--font-ui);
