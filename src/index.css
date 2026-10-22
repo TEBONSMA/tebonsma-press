@@ -15,8 +15,9 @@
 @import '@fontsource/archivo-narrow/500.css';
 @import '@fontsource/archivo-narrow/600.css';
 
-/* The two papers: the newspaper is black on white with Franklin for labels, the journal has a
-   petrol accent and Source Sans. Set on <html data-edition>. */
+/* The two papers: the newspaper is black on white with Franklin for labels; the journal looks
+   like a medical journal, Georgia on white with blue links and small grey capitals. Set on
+   <html data-edition>. */
 :root {
   --paper: #ffffff;
   --ink: #121212;
@@ -25,12 +26,17 @@
   --soft: #f5f2ea;
   --accent: #121212;
   --accent-ink: #ffffff;
+  --serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
   --ui: 'Libre Franklin', 'Helvetica Neue', Arial, sans-serif;
 }
 
 :root[data-edition='tidsskrift'] {
-  --soft: #eef4f5;
-  --accent: #1b4f5e;
+  --ink: #3e3b3c;
+  --muted: #8b8a8d;
+  --line: #d1d0ce;
+  --soft: #f7f5f3;
+  --accent: #003c7d;
+  --serif: Georgia, 'Times New Roman', serif;
   --ui: 'Source Sans 3', 'Helvetica Neue', Arial, sans-serif;
 }
 
@@ -42,8 +48,11 @@
   --color-soft: var(--soft);
   --color-accent: var(--accent);
   --color-accent-ink: var(--accent-ink);
-  --font-serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --font-serif: var(--serif);
   --font-ui: var(--ui);
+  /* The journal's headlines: a newspaper serif, and a narrow sans for research */
+  --font-headline: 'Newsreader Variable', Georgia, serif;
+  --font-narrow: 'Archivo Narrow', 'Arial Narrow', sans-serif;
 }
 
 html {
@@ -159,17 +168,56 @@ body {
     border-top: 1px solid var(--line);
   }
 
-  /* The journal: section headings as in a scientific paper */
+  /* The journal: Georgia in a narrow column, headings over a thin line, quotes as fact boxes */
+  :root[data-edition='tidsskrift'] .article-body {
+    font-size: 1rem;
+    line-height: 1.375;
+  }
+
+  :root[data-edition='tidsskrift'] .article-body > * + * {
+    margin-top: 1.25em;
+  }
+
   :root[data-edition='tidsskrift'] .article-body h2 {
-    font-family: var(--font-ui);
-    font-size: 1.05rem;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    margin-top: 2em;
+    border-top: 1px solid var(--line);
+    padding-top: 13px;
+    font-family: var(--font-headline);
+    font-size: 1.375rem;
+    font-weight: 500;
+    line-height: 1.05;
+    color: #000;
+  }
+
+  :root[data-edition='tidsskrift'] .article-body h3 {
+    margin-top: 1.5em;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  :root[data-edition='tidsskrift'] .article-body a {
     color: var(--accent);
   }
 
   :root[data-edition='tidsskrift'] .article-body blockquote {
-    font-size: 1.15rem;
+    margin: 1.8em 0;
+    border-left: 0;
+    border-top: 3px solid #000;
+    padding: 10px 0 0;
+    font-size: 1rem;
+    font-style: normal;
+    line-height: 1.375;
+  }
+
+  :root[data-edition='tidsskrift'] .article-body figcaption {
+    font-family: var(--font-serif);
+    font-size: 0.875rem;
+    font-style: italic;
+  }
+
+  /* Below the sticky menu when jumped to from the table of contents */
+  :root[data-edition='tidsskrift'] [id] {
+    scroll-margin-top: 4.5rem;
   }
 
   /* The editor's text box looks like the article */
