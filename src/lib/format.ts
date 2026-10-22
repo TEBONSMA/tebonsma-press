@@ -23,5 +23,23 @@ export function when(iso: string) {
   return shortDate(iso)
 }
 
+const weekday = new Intl.DateTimeFormat('nb-NO', { weekday: 'long', day: 'numeric', month: 'long' })
+
+// A time ahead: today or tomorrow with the time, otherwise the weekday and date with the time
+export function ahead(iso: string) {
+  const date = new Date(iso)
+  const tomorrow = new Date()
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  const day =
+    date.toDateString() === new Date().toDateString() ? 'i dag' : date.toDateString() === tomorrow.toDateString() ? 'i morgen' : weekday.format(date)
+  return `${day} kl. ${time.format(date)}`
+}
+
+// For <input type="datetime-local">: 2026-10-23T07:00 in local time
+export function localInput(date: Date) {
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
+
 // Names with commas between them, and the Norwegian word for and before the last
 export const names = (list: string[]) => (list.length < 2 ? list.join('') : `${list.slice(0, -1).join(', ')} og ${list.at(-1)}`)
