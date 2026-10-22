@@ -10,6 +10,14 @@ export interface Member {
   avatar: string | null
 }
 
+// An author of an article: the member, and the name they go by in it (null for their own)
+export interface Author extends Member {
+  alias: string | null
+}
+
+// The name an author goes by in the article
+export const authorName = (author: Author) => author.alias ?? author.name
+
 export interface Article {
   id: string
   slug: string
@@ -18,12 +26,10 @@ export interface Article {
   section: string
   title: string
   lead: string
-  // null in lists, and for a visitor on a members-only article
+  // null in lists
   body: string | null
-  // A members-only article seen by a visitor
-  locked: boolean
   tags: string[]
-  authors: Member[]
+  authors: Author[]
   coverImage: string | null
   coverCaption: string
   frontPosition: number | null
@@ -40,8 +46,8 @@ export interface ArticleInput {
   lead: string
   body: string
   tags: string[]
-  // Member ids, in byline order
-  authors: string[]
+  // In byline order: the member's id, and the name they go by in this article ('' for their own)
+  authors: { id: string; alias: string }[]
   visibility: 'public' | 'members'
   coverImage: string | null
   coverCaption: string
@@ -50,7 +56,8 @@ export interface ArticleInput {
 const base = `/press/${edition.id}`
 
 export const getFront = (token: string | null) => apiFetch<{ front: Article[]; latest: Article[] }>(`${base}/front`, token)
-export const getSections = () => apiFetch<{ section: string; count: number }[]>(`${base}/sections`, null)
+// Members-only articles count only for those logged in
+export const getSections = (token: string | null) => apiFetch<{ section: string; count: number }[]>(`${base}/sections`, token)
 // The sections in the menu: the editors' list (custom), or the ones in use until they make one
 export const getMenu = () => apiFetch<{ sections: string[]; custom: boolean }>(`${base}/menu`, null)
 export const getArticle = (token: string | null, slug: string) => apiFetch<Article>(`${base}/articles/${encodeURIComponent(slug)}`, token)

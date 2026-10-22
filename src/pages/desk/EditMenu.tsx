@@ -68,7 +68,7 @@ function Menu({ token, initial, inUse }: { token: string; initial: string[]; inU
   return (
     <div className="max-w-2xl">
       <p className="font-ui text-[14px] text-muted">
-        Seksjonene vises i menyen øverst, i denne rekkefølgen. Forsiden og Arkiv er alltid med. En sak kan ha en seksjon som ikke står i menyen.
+        Seksjonene vises i menyen øverst, i denne rekkefølgen. {edition.alwaysInMenu} En sak kan ha en seksjon som ikke står i menyen.
       </p>
       <ol className="mt-5 space-y-2">
         {sections.map((section, i) => (
@@ -122,7 +122,7 @@ function Menu({ token, initial, inUse }: { token: string; initial: string[]; inU
 }
 
 function Loaded({ token }: { token: string }) {
-  const { data, error, loading } = useLoad(() => Promise.all([getMenu(), getSections()]), `menu:${token}`)
+  const { data, error, loading } = useLoad(() => Promise.all([getMenu(), getSections(token)]), `menu:${token}`)
   if (loading) return <Loading />
   if (error || !data) return <Problem message={error ?? 'Noe gikk galt'} />
   return <Menu token={token} initial={data[0].sections} inUse={data[1]} />

@@ -2,13 +2,14 @@ import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { Search } from 'lucide-react'
 import ArticleBody from '../components/ArticleBody'
+import AuthorNames from '../components/AuthorNames'
 import Avatar from '../components/Avatar'
-import LockedNotice from '../components/LockedNotice'
 import Picture from '../components/Picture'
 import { articleHref, edition, sectionHref } from '../edition'
 import { ahead, longDate, names, shortDate } from '../lib/format'
-import type { Article } from '../lib/press'
+import { authorName, type Article } from '../lib/press'
 import { citationOf } from '../lib/citation'
+import { memberHref } from '../lib/members'
 import { useMobileMenu } from '../state/useMobileMenu'
 import { useSections } from '../state/useSections'
 import { FamilyLinks, MenuButton, UserLinks } from './shared'
@@ -106,7 +107,7 @@ export function Header() {
                   </NavLink>
                 </li>
               ))}
-              <li className="ml-auto lg:ml-0">
+              <li className={sections.length > 0 ? 'ml-auto lg:ml-0' : 'ml-auto'}>
                 <NavLink to="/arkiv" className={navItem}>
                   Søk <Search size={14} aria-hidden="true" />
                 </NavLink>
@@ -154,7 +155,7 @@ export function Footer() {
   )
 }
 
-// The type of article over its title, and whether it is shut to visitors
+// The type of article over its title
 function Kicker({ article }: { article: Article }) {
   return (
     <div className={`${caps} text-[#747476]`}>
@@ -163,12 +164,11 @@ function Kicker({ article }: { article: Article }) {
           {article.section}
         </Link>
       )}
-      {article.locked && <span className="text-muted">{article.section && ' · '}For medlemmer</span>}
     </div>
   )
 }
 
-const byline = (article: Article) => article.authors.map(a => a.name).join(', ')
+const byline = (article: Article) => article.authors.map(authorName).join(', ')
 
 function Title({ article, as: Tag = 'h2', className }: { article: Article; as?: 'h2' | 'h3'; className: string }) {
   return (
@@ -320,19 +320,21 @@ function Authors({ article }: { article: Article }) {
   if (article.authors.length === 0) return null
   return (
     <div className="italic text-muted">
-      {byline(article)}{' '}
+      <AuthorNames authors={article.authors} />{' '}
       <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} className="italic text-accent hover:underline">
         Om forfatterne
       </button>
       {open && (
         <ul className="mt-3 space-y-2 not-italic text-ink">
           {article.authors.map(author => (
-            <li key={author.id} className="flex items-center gap-3">
-              <Avatar member={author} className="h-9 w-9 text-[12px]" />
-              <span>
-                {author.name}
-                <span className="block text-[14px] text-muted">Brorskapet TEBONSMA</span>
-              </span>
+            <li key={author.id}>
+              <a href={memberHref(author.id)} className="group flex items-center gap-3">
+                <Avatar member={author} className="h-9 w-9 text-[12px]" />
+                <span>
+                  <span className="group-hover:underline">{authorName(author)}</span>
+                  <span className="block text-[14px] text-muted">Brorskapet TEBONSMA</span>
+                </span>
+              </a>
             </li>
           ))}
         </ul>
@@ -367,9 +369,9 @@ export function ArticleView({ article }: { article: Article }) {
   const cite = `${byline(article) || 'Redaksjonen'}. ${article.title}. ${citation.short}. doi: ${citation.doi}`
   const contents = [
     article.lead && { id: 'sammendrag', text: edition.leadLabel, sub: [] },
-    !article.locked && html && { id: 'artikkel', text: 'Artikkel', sub: headings },
-    !article.locked && article.tags.length > 0 && { id: 'nokkelord', text: edition.tagsLabel, sub: [] },
-    !article.locked && { id: 'siter', text: 'Sitér artikkelen', sub: [] },
+    html && { id: 'artikkel', text: 'Artikkel', sub: headings },
+    article.tags.length > 0 && { id: 'nokkelord', text: edition.tagsLabel, sub: [] },
+    { id: 'siter', text: 'Sitér artikkelen', sub: [] },
   ].filter(item => !!item)
   const published = !article.publishedAt
     ? 'Ikke publisert'
@@ -422,33 +424,27 @@ export function ArticleView({ article }: { article: Article }) {
               {article.coverCaption && <figcaption className="mt-2 text-[14px] italic text-muted">{article.coverCaption}</figcaption>}
             </figure>
           )}
-          {article.locked ? (
-            <LockedNotice />
-          ) : (
-            <>
-              {html && (
-                <section id="artikkel" className="mt-10">
-                  <ArticleBody html={html} />
-                </section>
-              )}
-              {article.tags.length > 0 && (
-                <section id="nokkelord" className="mt-10">
-                  <h2 className="border-t border-line pt-[13px] font-headline text-[22px] font-medium leading-none text-black">{edition.tagsLabel}</h2>
-                  <p className="mt-3">
-                    {article.tags.map((tag, i) => (
-                      <Fragment key={tag}>
-                        {i > 0 && ', '}
-                        <Link to={`/arkiv?tag=${encodeURIComponent(tag)}`} className="text-accent hover:underline">
-                          {tag}
-                        </Link>
-                      </Fragment>
-                    ))}
-                  </p>
-                </section>
-              )}
-              <Cite text={cite} />
-            </>
+          {html && (
+            <section id="artikkel" className="mt-10">
+              <ArticleBody html={html} />
+            </section>
           )}
+          {article.tags.length > 0 && (
+            <section id="nokkelord" className="mt-10">
+              <h2 className="border-t border-line pt-[13px] font-headline text-[22px] font-medium leading-none text-black">{edition.tagsLabel}</h2>
+              <p className="mt-3">
+                {article.tags.map((tag, i) => (
+                  <Fragment key={tag}>
+                    {i > 0 && ', '}
+                    <Link to={`/arkiv?tag=${encodeURIComponent(tag)}`} className="text-accent hover:underline">
+                      {tag}
+                    </Link>
+                  </Fragment>
+                ))}
+              </p>
+            </section>
+          )}
+          <Cite text={cite} />
         </div>
 
         <aside className="self-start border-t-[3px] border-black bg-soft text-[14px] leading-[18px] text-black">
@@ -465,7 +461,7 @@ export function ArticleView({ article }: { article: Article }) {
             <p>
               {article.visibility === 'public' ? 'Åpen tilgang' : 'Kun for medlemmer'}
               <br />
-              Opphavsrett: {names(article.authors.map(a => a.name)) || 'Redaksjonen'}
+              Opphavsrett: {names(article.authors.map(authorName)) || 'Redaksjonen'}
             </p>
           </div>
           <ul className="border-t border-line">
@@ -474,13 +470,11 @@ export function ArticleView({ article }: { article: Article }) {
                 Skriv ut
               </button>
             </li>
-            {!article.locked && (
-              <li className="border-t border-line">
-                <a href="#siter" className={`${caps} block px-3 py-3 text-accent hover:underline`}>
-                  Sitér artikkelen
-                </a>
-              </li>
-            )}
+            <li className="border-t border-line">
+              <a href="#siter" className={`${caps} block px-3 py-3 text-accent hover:underline`}>
+                Sitér artikkelen
+              </a>
+            </li>
           </ul>
         </aside>
       </div>

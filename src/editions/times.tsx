@@ -1,7 +1,6 @@
 import { Link, NavLink } from 'react-router-dom'
 import ArticleBody from '../components/ArticleBody'
 import Byline from '../components/Byline'
-import LockedNotice from '../components/LockedNotice'
 import Picture from '../components/Picture'
 import { kicker } from '../components/styles'
 import { articleHref, edition, sectionHref } from '../edition'
@@ -37,11 +36,13 @@ export function Header() {
         </span>
         <UserLinks />
       </div>
-      <div className="relative flex items-center justify-center py-3 sm:py-5">
-        <MenuButton open={menu.open} onClick={menu.toggle} className="absolute left-0" />
-        <Link to="/" aria-label={`${edition.name}, forsiden`}>
-          <img src="/times/masthead.svg" alt={edition.name} className="h-8 w-auto min-[400px]:h-9 sm:h-14 lg:h-[68px]" />
+      <div className="flex items-center gap-2 py-3 sm:py-5">
+        <MenuButton open={menu.open} onClick={menu.toggle} className="shrink-0" />
+        <Link to="/" className="flex min-w-0 flex-1 justify-center" aria-label={`${edition.name}, forsiden`}>
+          <img src="/times/masthead.svg" alt={edition.name} className="h-8 w-auto max-w-full object-contain min-[400px]:h-9 sm:h-14 lg:h-[68px]" />
         </Link>
+        {/* As wide as the menu button, so the name stays in the middle */}
+        <span className="w-[34px] shrink-0 md:hidden" aria-hidden="true" />
       </div>
       <nav aria-label="Seksjoner" className={`border-t-4 border-double border-ink md:border-b-4 ${menu.open ? 'border-b-4' : ''}`}>
         <ul className="hidden justify-center-safe overflow-x-auto overflow-y-hidden [scrollbar-width:none] md:flex">
@@ -238,13 +239,13 @@ export function ArticleFooter({ article }: { article: Article }) {
   )
 }
 
-// The article: its head, its text (or that it is for members) and its tags
+// The article: its head, its text and its tags
 export function ArticleView({ article }: { article: Article }) {
   return (
     <>
       <ArticleHeader article={article} />
-      <div className="mx-auto mt-8 max-w-[720px] px-4">{article.locked ? <LockedNotice /> : article.body && <ArticleBody html={article.body} />}</div>
-      {!article.locked && <ArticleFooter article={article} />}
+      <div className="mx-auto mt-8 max-w-[720px] px-4">{article.body && <ArticleBody html={article.body} />}</div>
+      <ArticleFooter article={article} />
     </>
   )
 }

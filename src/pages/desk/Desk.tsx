@@ -5,7 +5,7 @@ import { Loading, Problem } from '../../components/Status'
 import { button, kicker } from '../../components/styles'
 import { articleHref, edition } from '../../edition'
 import { ahead, names, when } from '../../lib/format'
-import { listDesk, type Article } from '../../lib/press'
+import { authorName, listDesk, type Article } from '../../lib/press'
 import { useLoad } from '../../state/useLoad'
 import { useTitle } from '../../state/useTitle'
 
@@ -60,7 +60,7 @@ function DeskList({ token }: { token: string }) {
                   {article.title}
                 </Link>
                 <p className="font-ui text-[13px] text-muted">
-                  {article.authors.length > 0 && `${names(article.authors.map(a => a.name))} · `}
+                  {article.authors.length > 0 && `${names(article.authors.map(authorName))} · `}
                   {article.scheduled
                     ? `Publiseres ${ahead(article.publishedAt!)}`
                     : article.status === 'published' && article.publishedAt
