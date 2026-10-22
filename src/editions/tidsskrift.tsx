@@ -2,12 +2,14 @@ import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { Search } from 'lucide-react'
 import ArticleBody from '../components/ArticleBody'
+import AuthorNames from '../components/AuthorNames'
 import Avatar from '../components/Avatar'
 import Picture from '../components/Picture'
 import { articleHref, edition, sectionHref } from '../edition'
 import { ahead, longDate, names, shortDate } from '../lib/format'
 import { authorName, type Article } from '../lib/press'
 import { citationOf } from '../lib/citation'
+import { memberHref } from '../lib/members'
 import { useMobileMenu } from '../state/useMobileMenu'
 import { useSections } from '../state/useSections'
 import { FamilyLinks, MenuButton, UserLinks } from './shared'
@@ -318,19 +320,21 @@ function Authors({ article }: { article: Article }) {
   if (article.authors.length === 0) return null
   return (
     <div className="italic text-muted">
-      {byline(article)}{' '}
+      <AuthorNames authors={article.authors} />{' '}
       <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} className="italic text-accent hover:underline">
         Om forfatterne
       </button>
       {open && (
         <ul className="mt-3 space-y-2 not-italic text-ink">
           {article.authors.map(author => (
-            <li key={author.id} className="flex items-center gap-3">
-              <Avatar member={author} className="h-9 w-9 text-[12px]" />
-              <span>
-                {authorName(author)}
-                <span className="block text-[14px] text-muted">Brorskapet TEBONSMA</span>
-              </span>
+            <li key={author.id}>
+              <a href={memberHref(author.id)} className="group flex items-center gap-3">
+                <Avatar member={author} className="h-9 w-9 text-[12px]" />
+                <span>
+                  <span className="group-hover:underline">{authorName(author)}</span>
+                  <span className="block text-[14px] text-muted">Brorskapet TEBONSMA</span>
+                </span>
+              </a>
             </li>
           ))}
         </ul>
