@@ -122,7 +122,7 @@ function Menu({ token, initial, inUse }: { token: string; initial: string[]; inU
 }
 
 function Loaded({ token }: { token: string }) {
-  const { data, error, loading } = useLoad(() => Promise.all([getMenu(), getSections()]), `menu:${token}`)
+  const { data, error, loading } = useLoad(() => Promise.all([getMenu(), getSections(token)]), `menu:${token}`)
   if (loading) return <Loading />
   if (error || !data) return <Problem message={error ?? 'Noe gikk galt'} />
   return <Menu token={token} initial={data[0].sections} inUse={data[1]} />

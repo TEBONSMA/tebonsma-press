@@ -50,7 +50,8 @@ export interface ArticleInput {
 const base = `/press/${edition.id}`
 
 export const getFront = (token: string | null) => apiFetch<{ front: Article[]; latest: Article[] }>(`${base}/front`, token)
-export const getSections = () => apiFetch<{ section: string; count: number }[]>(`${base}/sections`, null)
+// Members-only articles count only for those logged in
+export const getSections = (token: string | null) => apiFetch<{ section: string; count: number }[]>(`${base}/sections`, token)
 // The sections in the menu: the editors' list (custom), or the ones in use until they make one
 export const getMenu = () => apiFetch<{ sections: string[]; custom: boolean }>(`${base}/menu`, null)
 export const getArticle = (token: string | null, slug: string) => apiFetch<Article>(`${base}/articles/${encodeURIComponent(slug)}`, token)
