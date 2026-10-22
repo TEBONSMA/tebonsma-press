@@ -158,7 +158,11 @@ export function ListItem({ article }: { article: Article }) {
           <h3 className="mt-1 text-[21px] font-bold leading-tight group-hover:underline">{article.title}</h3>
           {article.lead && <p className="mt-1 line-clamp-2 text-[16px] leading-snug text-muted">{article.lead}</p>}
         </div>
-        {article.coverImage && <Picture src={article.coverImage} className="aspect-square w-24 shrink-0 sm:w-32" />}
+        {article.coverImage && (
+          <div className="w-24 shrink-0 sm:w-32">
+            <Picture src={article.coverImage} className="aspect-square" />
+          </div>
+        )}
       </Link>
     </article>
   )
