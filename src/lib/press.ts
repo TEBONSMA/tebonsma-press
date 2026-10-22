@@ -30,6 +30,8 @@ export interface Article {
   createdAt: string
   updatedAt: string
   publishedAt: string | null
+  // Published, but not out until publishedAt; only the editors see it until then
+  scheduled: boolean
 }
 
 export interface ArticleInput {
@@ -66,7 +68,8 @@ export const getForEditing = (token: string, id: string) => apiFetch<Article>(`$
 export const listMembers = (token: string) => apiFetch<Member[]>(`${base}/desk/members`, token)
 export const createArticle = (token: string, input: ArticleInput) => apiFetch<Article>(`${base}/desk`, token, json('POST', input))
 export const updateArticle = (token: string, id: string, input: ArticleInput) => apiFetch<Article>(`${base}/desk/${id}`, token, json('PUT', input))
-export const publishArticle = (token: string, id: string) => apiFetch<Article>(`${base}/desk/${id}/publish`, token, json('POST'))
+// Now, or at a later time (an ISO time)
+export const publishArticle = (token: string, id: string, at?: string) => apiFetch<Article>(`${base}/desk/${id}/publish`, token, json('POST', at ? { at } : undefined))
 export const unpublishArticle = (token: string, id: string) => apiFetch<Article>(`${base}/desk/${id}/unpublish`, token, json('POST'))
 export const deleteArticle = (token: string, id: string) => apiFetch<{ ok: true }>(`${base}/desk/${id}`, token, json('DELETE'))
 export const setFront = (token: string, ids: string[]) => apiFetch<{ front: Article[]; latest: Article[] }>(`${base}/front`, token, json('PUT', { ids }))
