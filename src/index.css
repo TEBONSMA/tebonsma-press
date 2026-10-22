@@ -11,6 +11,9 @@
 @import '@fontsource/source-sans-3/400.css';
 @import '@fontsource/source-sans-3/600.css';
 @import '@fontsource/source-sans-3/700.css';
+@import '@fontsource-variable/newsreader/opsz.css';
+@import '@fontsource/archivo-narrow/500.css';
+@import '@fontsource/archivo-narrow/600.css';
 
 /* The two papers: the newspaper is black on white with Franklin for labels, the journal has a
    petrol accent and Source Sans. Set on <html data-edition>. */
