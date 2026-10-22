@@ -1,6 +1,4 @@
 import { Link, useParams } from 'react-router-dom'
-import ArticleBody from '../components/ArticleBody'
-import LockedNotice from '../components/LockedNotice'
 import { Loading, Problem } from '../components/Status'
 import { button } from '../components/styles'
 import { paper } from '../editions/paper'
@@ -39,9 +37,7 @@ export default function ArticlePage() {
           </div>
         </div>
       )}
-      <paper.ArticleHeader article={article} />
-      <div className="mx-auto mt-8 max-w-[720px] px-4">{article.locked ? <LockedNotice /> : article.body && <ArticleBody html={article.body} />}</div>
-      {!article.locked && <paper.ArticleFooter article={article} />}
+      <paper.ArticleView article={article} />
     </article>
   )
 }

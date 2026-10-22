@@ -1,76 +1,111 @@
-import { useState } from 'react'
-import { Link, NavLink } from 'react-router-dom'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
+import { Link, NavLink, useLocation } from 'react-router-dom'
+import { Search } from 'lucide-react'
+import ArticleBody from '../components/ArticleBody'
 import Avatar from '../components/Avatar'
+import LockedNotice from '../components/LockedNotice'
 import Picture from '../components/Picture'
-import { kicker } from '../components/styles'
 import { articleHref, edition, sectionHref } from '../edition'
-import { names, shortDate } from '../lib/format'
+import { ahead, longDate, names, shortDate } from '../lib/format'
 import type { Article } from '../lib/press'
 import { citationOf } from '../lib/citation'
 import { useSections } from '../state/useSections'
-import { FamilyLinks, Tags, UserLinks } from './shared'
+import { FamilyLinks, UserLinks } from './shared'
 
-// Tebonsma Tidsskrift: a scientific journal. White and calm, a petrol accent, the article's
-// type over its title, an abstract and a way to cite it.
+// Tebonsma Tidsskrift: a scientific journal, made to look like the Norwegian medical journal.
+// Georgia on white in a narrow page, small grey capitals, blue links, thin rules and a thick
+// black one under the menu. Research has narrow sans headlines, the rest a newspaper serif.
+
+const wrap = 'mx-auto w-full max-w-[1012px] px-4'
+// Small capitals with air between the letters: an article's type, the menu, the contents
+const caps = 'font-ui text-[12px] uppercase tracking-[0.1em]'
+
+const RESEARCH = new Set(['Originalartikkel', 'Kort rapport', 'Kasuistikk', 'Oversiktsartikkel'])
+const headline = (article: Article) => (RESEARCH.has(article.section) ? 'font-narrow font-semibold tracking-[-0.015em]' : 'font-headline font-medium')
 
 // The abstract: words in capitals before a colon (BAKGRUNN:, MATERIALE OG METODE:) start a part
 const LABEL = /\b([A-ZÆØÅ][A-ZÆØÅ ]*[A-ZÆØÅ]):\s*/g
+const sentence = (capitals: string) => capitals.charAt(0) + capitals.slice(1).toLowerCase()
+// The abstract as one run of text, for the front page and lists
+const plain = (lead: string) => lead.replace(LABEL, '').replace(/\s+/g, ' ').trim()
 
-function Abstract({ text }: { text: string }) {
-  const labels = [...text.matchAll(LABEL)]
-  if (labels.length === 0) return <p className="text-[17px] leading-relaxed">{text}</p>
-  const before = text.slice(0, labels[0].index).trim()
+// The journal's mark, a T in a black circle, as big as the text around it
+const Mark = ({ className = '' }: { className?: string }) => (
+  <span aria-hidden="true" className={`relative inline-block h-[0.56em] w-[0.56em] shrink-0 rounded-full bg-black ${className}`}>
+    <span className="absolute inset-0 flex items-center justify-center pb-[0.02em] font-headline text-[0.42em] font-bold leading-none text-white">T</span>
+  </span>
+)
+
+function Wordmark({ large }: { large?: boolean }) {
   return (
-    <div className="space-y-2">
-      {before && <p className="text-[17px] leading-relaxed">{before}</p>}
-      {labels.map((label, i) => (
-        <p key={label.index} className="text-[17px] leading-relaxed">
-          <strong className="font-ui text-[13px] font-bold uppercase tracking-[0.06em] text-accent">{label[1].toLowerCase()}</strong>{' '}
-          {text.slice(label.index + label[0].length, labels[i + 1]?.index ?? text.length).trim()}
-        </p>
-      ))}
-    </div>
+    <span
+      className={`inline-flex items-start gap-[0.12em] whitespace-nowrap font-headline font-extrabold leading-none tracking-[-0.03em] text-black ${large ? 'text-[34px] sm:text-[58px]' : 'text-[26px] sm:text-[36px]'}`}
+    >
+      Tebonsma Tidsskrift
+      <Mark className="mt-[0.06em]" />
+    </span>
   )
 }
 
 const navItem = ({ isActive }: { isActive: boolean }) =>
-  `whitespace-nowrap border-b-2 px-3 py-3 font-ui text-[14px] font-semibold ${isActive ? 'border-accent text-accent' : 'border-transparent hover:text-accent'}`
+  `${caps} flex items-center gap-1.5 whitespace-nowrap px-2 py-4 ${isActive ? 'text-black' : 'text-muted hover:text-black'}`
 
 export function Header() {
   const sections = useSections()
+  const front = useLocation().pathname === '/'
+  const top = useRef<HTMLDivElement>(null)
+  // Once the name has scrolled away, its mark goes into the menu, which stays at the top
+  const [past, setPast] = useState(false)
+  useEffect(() => {
+    const element = top.current
+    if (!element) return
+    const observer = new IntersectionObserver(([entry]) => setPast(!entry.isIntersecting))
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [])
+
   return (
-    <header className="border-b border-line">
-      <div className="h-1.5 bg-accent" />
-      <div className="mx-auto flex max-w-6xl items-start justify-between gap-4 px-4 pt-5">
-        <Link to="/" className="group" aria-label={`${edition.name}, forsiden`}>
-          <div className="font-ui text-[12px] font-bold uppercase tracking-[0.32em] text-accent">Tebonsma</div>
-          <div className="text-[34px] font-semibold leading-none tracking-tight sm:text-[42px]">Tidsskrift</div>
-        </Link>
-        <UserLinks className="pt-1" />
+    <header>
+      <div className={`${wrap} flex justify-end pb-5 pt-3 sm:pb-9`}>
+        <UserLinks />
       </div>
-      <p className="mx-auto max-w-6xl px-4 pt-2 font-ui text-[13px] text-muted">
-        {edition.tagline} <span className="hidden sm:inline">· ISSN 6767-0021</span>
-      </p>
-      <nav aria-label={edition.sectionsLabel} className="mx-auto mt-3 max-w-6xl px-1">
-        <ul className="-mb-px flex overflow-x-auto overflow-y-hidden">
-          <li>
-            <NavLink to="/" end className={navItem}>
-              Forsiden
-            </NavLink>
-          </li>
-          {sections.map(section => (
-            <li key={section}>
-              <NavLink to={sectionHref(section)} className={navItem}>
-                {section}
-              </NavLink>
-            </li>
-          ))}
-          <li>
-            <NavLink to="/arkiv" className={navItem}>
-              Arkiv
-            </NavLink>
-          </li>
-        </ul>
+      <div ref={top} className={wrap}>
+        <div className="border-t border-line">
+          <div className={`${caps} hidden justify-between pt-2.5 font-semibold text-muted md:flex`}>
+            <span>Tidsskrift for Brorskapet TEBONSMA</span>
+            <span>{longDate()}</span>
+          </div>
+          <div className={`flex justify-center ${front ? 'pb-7 pt-6 md:pt-3' : 'pb-5 pt-4 md:pt-1'}`}>
+            <Link to="/" aria-label={`${edition.name}, forsiden`}>
+              <Wordmark large={front} />
+            </Link>
+          </div>
+        </div>
+      </div>
+      <nav aria-label={edition.sectionsLabel} className="sticky top-0 z-20 bg-paper">
+        <div className={wrap}>
+          <div className="flex items-center border-b-[3px] border-t border-b-black border-t-line">
+            {past && (
+              <Link to="/" aria-label="Forsiden" className="mr-2 flex shrink-0 text-[34px]">
+                <Mark />
+              </Link>
+            )}
+            <ul className="flex flex-1 overflow-x-auto overflow-y-hidden [scrollbar-width:none] lg:justify-between">
+              {sections.map(section => (
+                <li key={section}>
+                  <NavLink to={sectionHref(section)} className={navItem}>
+                    {section}
+                  </NavLink>
+                </li>
+              ))}
+              <li className="ml-auto lg:ml-0">
+                <NavLink to="/arkiv" className={navItem}>
+                  Søk <Search size={14} aria-hidden="true" />
+                </NavLink>
+              </li>
+            </ul>
+          </div>
+        </div>
       </nav>
     </header>
   )
@@ -78,150 +113,211 @@ export function Header() {
 
 export function Footer() {
   return (
-    <footer className="mt-20 bg-accent text-accent-ink">
-      <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <div className="font-ui text-[11px] font-bold uppercase tracking-[0.32em] opacity-80">Tebonsma</div>
-          <div className="text-[26px] font-semibold leading-none">Tidsskrift</div>
-          <p className="mt-3 font-ui text-[13px] opacity-80">Utgitt av Brorskapet TEBONSMA. Synspunktene er forfatternes egne, og ofte bare deres.</p>
+    <footer className="mt-20">
+      <div className={wrap}>
+        <div className="border-t-[3px] border-black pb-14 pt-8 text-center text-[16px] leading-[22px]">
+          <Link to="/" aria-label={`${edition.name}, forsiden`}>
+            <Wordmark />
+          </Link>
+          <p className="mx-auto mt-5 max-w-[640px]">
+            Tebonsma Tidsskrift er Brorskapet TEBONSMAs vitenskapelige tidsskrift. Fagfellevurdert, av og til. Synspunktene er forfatternes egne, og ofte bare deres.
+          </p>
+          <p className="mt-2">ISSN 6767-0021 (nett)</p>
+          <FamilyLinks className="mt-6 justify-center uppercase tracking-[0.1em] text-accent" />
         </div>
-        <FamilyLinks className="opacity-90" />
       </div>
     </footer>
   )
 }
 
-function TypeLine({ article }: { article: Article }) {
+// The type of article over its title, and whether it is shut to visitors
+function Kicker({ article }: { article: Article }) {
   return (
-    <div className="flex flex-wrap items-baseline gap-x-3">
+    <div className={`${caps} text-[#747476]`}>
       {article.section && (
-        <Link to={sectionHref(article.section)} className={`${kicker} text-accent hover:underline`}>
+        <Link to={sectionHref(article.section)} className="hover:text-black">
           {article.section}
         </Link>
       )}
-      {article.visibility === 'members' && <span className={`${kicker} text-muted`}>For medlemmer</span>}
+      {article.locked && <span className="text-muted">{article.section && ' · '}For medlemmer</span>}
     </div>
   )
 }
 
-const Authors = ({ article }: { article: Article }) =>
-  article.authors.length > 0 ? <p className="font-ui text-[14px] text-ink">{names(article.authors.map(a => a.name))}</p> : null
+const byline = (article: Article) => article.authors.map(a => a.name).join(', ')
 
-function Featured({ article, large }: { article: Article; large?: boolean }) {
-  const citation = citationOf(article)
+function Title({ article, as: Tag = 'h2', className }: { article: Article; as?: 'h2' | 'h3'; className: string }) {
   return (
-    <article className={large ? 'lg:col-span-2' : ''}>
-      <Link to={articleHref(article.slug)} className={`group grid gap-5 ${large && article.coverImage ? 'sm:grid-cols-[1fr_16rem]' : ''}`}>
-        <div>
-          <TypeLine article={article} />
-          <h2 className={`mt-2 font-semibold leading-tight group-hover:text-accent ${large ? 'text-[30px]' : 'text-[22px]'}`}>{article.title}</h2>
-          <div className="mt-2">
-            <Authors article={article} />
-            <p className="font-ui text-[13px] text-muted">
-              {citation.short} · doi:{citation.doi}
-            </p>
-          </div>
-          {article.lead && <p className={`mt-3 text-[16px] leading-relaxed text-muted ${large ? 'line-clamp-5' : 'line-clamp-3'}`}>{article.lead}</p>}
-        </div>
-        {large && article.coverImage && <Picture src={article.coverImage} className="aspect-[4/3] rounded" />}
+    <Tag className={`${headline(article)} text-black ${className}`}>
+      <Link to={articleHref(article.slug)} className="hover:text-accent">
+        {article.title}
       </Link>
+    </Tag>
+  )
+}
+
+// The top of the front page: a picture on the left, the article on the right
+function Lead({ article }: { article: Article }) {
+  return (
+    <article className="grid gap-5 border-b border-line py-6 md:grid-cols-2 md:gap-6">
+      {article.coverImage && (
+        <Link to={articleHref(article.slug)} tabIndex={-1}>
+          <Picture src={article.coverImage} className="aspect-[3/2]" />
+        </Link>
+      )}
+      <div className={article.coverImage ? '' : 'md:col-span-2 md:max-w-[700px]'}>
+        <Kicker article={article} />
+        <Title article={article} className="mt-1 text-[32px] leading-[1.1] sm:text-[44px]" />
+        {article.lead && <p className="mt-4 line-clamp-5 text-[16px] leading-[22px]">{plain(article.lead)}</p>}
+      </div>
     </article>
+  )
+}
+
+// Four side by side, with a picture over each title
+function Column({ article }: { article: Article }) {
+  return (
+    <article className="py-5 md:px-4 md:first:pl-0 md:last:pr-0">
+      <Kicker article={article} />
+      {article.coverImage && (
+        <Link to={articleHref(article.slug)} tabIndex={-1} className="mt-2 block">
+          <Picture src={article.coverImage} className="aspect-[4/3]" />
+        </Link>
+      )}
+      <Title article={article} as="h3" className="mt-3 text-[22px] leading-[1.15]" />
+      {!article.coverImage && article.lead && <p className="mt-2 line-clamp-5 text-[15px] leading-[21px]">{plain(article.lead)}</p>}
+    </article>
+  )
+}
+
+// A row: a small article in a narrow column, a large one beside it
+function Row({ small, large }: { small: Article; large?: Article }) {
+  const wide = large ?? small
+  const narrow = large ? small : null
+  return (
+    <div className="grid divide-y divide-line border-b border-line md:grid-cols-[1fr_2fr] md:divide-x md:divide-y-0">
+      {narrow && (
+        <article className="py-6 md:pr-5">
+          <Kicker article={narrow} />
+          <Title article={narrow} as="h3" className="mt-1 text-[22px] leading-[1.15]" />
+          {narrow.lead && <p className="mt-3 line-clamp-6 text-[15px] leading-[21px]">{plain(narrow.lead)}</p>}
+        </article>
+      )}
+      <article className={`grid gap-5 py-6 ${narrow ? 'md:pl-5' : 'md:col-span-2'} ${wide.coverImage ? 'sm:grid-cols-2' : ''}`}>
+        <div>
+          <Kicker article={wide} />
+          <Title article={wide} className="mt-1 text-[30px] leading-[1.1] sm:text-[40px]" />
+          {wide.lead && <p className="mt-4 line-clamp-5 text-[16px] leading-[22px]">{plain(wide.lead)}</p>}
+        </div>
+        {wide.coverImage && (
+          <Link to={articleHref(wide.slug)} tabIndex={-1}>
+            <Picture src={wide.coverImage} className="aspect-[4/3]" />
+          </Link>
+        )}
+      </article>
+    </div>
+  )
+}
+
+export function Front({ front, latest }: { front: Article[]; latest: Article[] }) {
+  const [top, ...rest] = [...front, ...latest]
+  if (!top) return <p className="py-24 text-center text-muted">Ingen artikler ennå. Fagfellene leser fortsatt.</p>
+  const columns = rest.slice(0, 4)
+  const rows: [Article, Article | undefined][] = []
+  for (let i = 4; i < rest.length; i += 2) rows.push([rest[i], rest[i + 1]])
+  return (
+    <div className={wrap}>
+      <Lead article={top} />
+      {columns.length > 0 && (
+        <div className="grid divide-y divide-line border-b border-line md:grid-cols-4 md:divide-x md:divide-y-0">
+          {columns.map(article => (
+            <Column key={article.id} article={article} />
+          ))}
+        </div>
+      )}
+      {rows.map(([small, large]) => (
+        <Row key={small.id} small={small} large={large} />
+      ))}
+    </div>
   )
 }
 
 export function ListItem({ article }: { article: Article }) {
   return (
-    <article className="grid gap-1 border-b border-line py-4 sm:grid-cols-[9rem_1fr] sm:gap-6">
-      <div className="font-ui text-[13px] text-muted">{article.publishedAt && shortDate(article.publishedAt)}</div>
-      <Link to={articleHref(article.slug)} className="group block">
-        <TypeLine article={article} />
-        <h3 className="mt-1 text-[19px] font-semibold leading-snug group-hover:text-accent">{article.title}</h3>
-        <Authors article={article} />
-      </Link>
+    <article className="grid gap-4 border-b border-line py-5 sm:grid-cols-[1fr_180px] sm:gap-6">
+      <div>
+        <Kicker article={article} />
+        <Title article={article} as="h3" className="mt-1 text-[24px] leading-[1.1]" />
+        {article.authors.length > 0 && <p className="mt-2 text-[15px] italic text-muted">{byline(article)}</p>}
+        {article.lead && <p className="mt-2 line-clamp-3 text-[16px] leading-[22px]">{plain(article.lead)}</p>}
+        {article.publishedAt && <p className={`${caps} mt-2 text-muted`}>{shortDate(article.publishedAt)}</p>}
+      </div>
+      {article.coverImage && (
+        <Link to={articleHref(article.slug)} tabIndex={-1} className="order-first sm:order-none">
+          <Picture src={article.coverImage} className="aspect-[4/3]" />
+        </Link>
+      )}
     </article>
   )
 }
 
-export function Front({ front, latest }: { front: Article[]; latest: Article[] }) {
-  const featured = front.length > 0 ? front : latest.slice(0, 3)
-  const rest = front.length > 0 ? latest : latest.slice(3)
-  if (featured.length === 0) return <p className="py-24 text-center font-ui text-muted">Ingen artikler ennå. Fagfellene leser fortsatt.</p>
+// --- The article
+
+function Abstract({ text }: { text: string }) {
+  const labels = [...text.matchAll(LABEL)]
+  if (labels.length === 0) return <p>{text}</p>
+  const before = text.slice(0, labels[0].index).trim()
   return (
-    <div className="mx-auto max-w-6xl px-4">
-      <section className="py-10">
-        <h2 className={`${kicker} text-muted`}>Utvalgte artikler</h2>
-        <div className="mt-5 grid gap-x-10 gap-y-10 border-t border-line pt-6 lg:grid-cols-2">
-          {featured.map((article, i) => (
-            <Featured key={article.id} article={article} large={i === 0} />
-          ))}
+    <div className="space-y-4">
+      {before && <p>{before}</p>}
+      {labels.map((label, i) => (
+        <div key={label.index}>
+          <h3 className="pt-1 font-bold">{sentence(label[1])}</h3>
+          <p>{text.slice(label.index + label[0].length, labels[i + 1]?.index ?? text.length).trim()}</p>
         </div>
-      </section>
-      {rest.length > 0 && (
-        <section className="border-t-2 border-accent pt-6">
-          <h2 className={`${kicker} text-muted`}>Siste artikler</h2>
-          <div className="mt-2">
-            {rest.map(article => (
-              <ListItem key={article.id} article={article} />
-            ))}
-          </div>
-        </section>
+      ))}
+    </div>
+  )
+}
+
+// The text with an anchor on each heading, for the table of contents
+function withAnchors(html: string | null) {
+  if (!html) return { html: '', headings: [] }
+  const doc = new DOMParser().parseFromString(html, 'text/html')
+  const headings = [...doc.querySelectorAll('h2')].map((heading, i) => {
+    heading.id = `del-${i + 1}`
+    return { id: heading.id, text: heading.textContent ?? '' }
+  })
+  return { html: doc.body.innerHTML, headings }
+}
+
+function Authors({ article }: { article: Article }) {
+  const [open, setOpen] = useState(false)
+  if (article.authors.length === 0) return null
+  return (
+    <div className="italic text-muted">
+      {byline(article)}{' '}
+      <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} className="italic text-accent hover:underline">
+        Om forfatterne
+      </button>
+      {open && (
+        <ul className="mt-3 space-y-2 not-italic text-ink">
+          {article.authors.map(author => (
+            <li key={author.id} className="flex items-center gap-3">
+              <Avatar member={author} className="h-9 w-9 text-[12px]" />
+              <span>
+                {author.name}
+                <span className="block text-[14px] text-muted">Brorskapet TEBONSMA</span>
+              </span>
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   )
 }
 
-export function ArticleHeader({ article }: { article: Article }) {
-  const citation = citationOf(article)
-  return (
-    <header className="mx-auto max-w-[760px] px-4 pt-10">
-      <TypeLine article={article} />
-      <h1 className="mt-3 text-[32px] font-semibold leading-[1.15] tracking-tight sm:text-[40px]">{article.title}</h1>
-      {article.authors.length > 0 && (
-        <ul className="mt-5 flex flex-wrap gap-x-5 gap-y-2">
-          {article.authors.map(author => (
-            <li key={author.id} className="flex items-center gap-2 font-ui text-[15px]">
-              <Avatar member={author} className="h-7 w-7 text-[11px]" />
-              {author.name}
-            </li>
-          ))}
-        </ul>
-      )}
-      <dl className="mt-5 grid grid-cols-2 gap-x-6 gap-y-2 border-y border-line py-3 font-ui text-[13px] sm:grid-cols-4">
-        <div>
-          <dt className="text-muted">Publisert</dt>
-          <dd>{article.publishedAt ? shortDate(article.publishedAt) : 'Ikke publisert'}</dd>
-        </div>
-        <div>
-          <dt className="text-muted">Årgang og nummer</dt>
-          <dd>
-            {citation.volume} ({citation.issue})
-          </dd>
-        </div>
-        <div className="col-span-2">
-          <dt className="text-muted">DOI</dt>
-          <dd>{citation.doi}</dd>
-        </div>
-      </dl>
-      {article.lead && (
-        <section className="mt-6 border-l-4 border-accent bg-soft px-5 py-4">
-          <h2 className={`${kicker} mb-2 text-accent`}>{edition.leadLabel}</h2>
-          <Abstract text={article.lead} />
-        </section>
-      )}
-      {article.coverImage && (
-        <figure className="mt-8">
-          <Picture src={article.coverImage} className="max-h-[60vh] rounded" />
-          {article.coverCaption && <figcaption className="mt-2 font-ui text-[13px] text-muted">{article.coverCaption}</figcaption>}
-        </figure>
-      )}
-    </header>
-  )
-}
-
-// After the text: the keywords and how to cite the article
-export function ArticleFooter({ article }: { article: Article }) {
-  const citation = citationOf(article)
-  const text = `${names(article.authors.map(a => a.name)) || 'Redaksjonen'}. ${article.title}. ${citation.short}. doi: ${citation.doi}`
+function Cite({ text }: { text: string }) {
   const [copied, setCopied] = useState(false)
   const copy = () => {
     void navigator.clipboard?.writeText(text).then(() => {
@@ -230,15 +326,140 @@ export function ArticleFooter({ article }: { article: Article }) {
     })
   }
   return (
-    <section className="mx-auto mt-10 max-w-[760px] space-y-6 px-4">
-      {article.tags.length > 0 && <Tags article={article} />}
-      <div className="rounded border border-line px-5 py-4">
-        <h2 className={`${kicker} text-muted`}>Sitér artikkelen</h2>
-        <p className="mt-2 font-ui text-[14px] leading-relaxed">{text}</p>
-        <button type="button" onClick={copy} className="mt-2 font-ui text-[13px] font-semibold text-accent hover:underline">
-          {copied ? 'Kopiert' : 'Kopier'}
-        </button>
-      </div>
+    <section id="siter" className="mt-10 border-t-[3px] border-black pt-2.5">
+      <h2 className="font-bold">Sitér artikkelen</h2>
+      <p className="mt-2 text-[15px] leading-[21px]">{text}</p>
+      <button type="button" onClick={copy} className={`${caps} mt-2 text-accent hover:underline`}>
+        {copied ? 'Kopiert' : 'Kopier'}
+      </button>
     </section>
+  )
+}
+
+// Contents, article and facts side by side, as in the journal's own pages
+export function ArticleView({ article }: { article: Article }) {
+  const citation = citationOf(article)
+  const { html, headings } = useMemo(() => withAnchors(article.body), [article.body])
+  const cite = `${byline(article) || 'Redaksjonen'}. ${article.title}. ${citation.short}. doi: ${citation.doi}`
+  const contents = [
+    article.lead && { id: 'sammendrag', text: edition.leadLabel, sub: [] },
+    !article.locked && html && { id: 'artikkel', text: 'Artikkel', sub: headings },
+    !article.locked && article.tags.length > 0 && { id: 'nokkelord', text: edition.tagsLabel, sub: [] },
+    !article.locked && { id: 'siter', text: 'Sitér artikkelen', sub: [] },
+  ].filter(item => !!item)
+  const published = !article.publishedAt
+    ? 'Ikke publisert'
+    : article.scheduled
+      ? `Publiseres ${ahead(article.publishedAt)}`
+      : `Publisert: ${shortDate(article.publishedAt)}`
+
+  return (
+    <div className={`${wrap} pt-6`}>
+      <header className="lg:ml-[155px] lg:max-w-[595px]">
+        <Kicker article={article} />
+        <h1 className={`${headline(article)} mt-1.5 text-[32px] leading-none text-black sm:text-[42px]`}>{article.title}</h1>
+      </header>
+
+      <div className="mt-8 grid gap-8 lg:grid-cols-[135px_minmax(0,595px)_210px] lg:gap-x-5">
+        <nav aria-label="Innhold" className="hidden lg:block">
+          <ul className="sticky top-20 space-y-4 border-t-[3px] border-black pt-3">
+            {contents.map(item => (
+              <li key={item.id}>
+                <a href={`#${item.id}`} className={`${caps} block leading-[1.35] text-accent hover:underline`}>
+                  {item.text}
+                </a>
+                {item.sub.length > 0 && (
+                  <ul className="mt-4 space-y-4 pl-3">
+                    {item.sub.map(sub => (
+                      <li key={sub.id}>
+                        <a href={`#${sub.id}`} className={`${caps} block leading-[1.35] text-accent hover:underline`}>
+                          {sub.text}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        <div className="min-w-0 border-t-[3px] border-black pt-3 text-[16px] leading-[22px]">
+          <Authors article={article} />
+          {article.lead && (
+            <section id="sammendrag" className="mt-5">
+              <h2 className="sr-only">{edition.leadLabel}</h2>
+              <Abstract text={article.lead} />
+            </section>
+          )}
+          {article.coverImage && (
+            <figure className="mt-8">
+              <Picture src={article.coverImage} />
+              {article.coverCaption && <figcaption className="mt-2 text-[14px] italic text-muted">{article.coverCaption}</figcaption>}
+            </figure>
+          )}
+          {article.locked ? (
+            <LockedNotice />
+          ) : (
+            <>
+              {html && (
+                <section id="artikkel" className="mt-10">
+                  <ArticleBody html={html} />
+                </section>
+              )}
+              {article.tags.length > 0 && (
+                <section id="nokkelord" className="mt-10">
+                  <h2 className="border-t border-line pt-[13px] font-headline text-[22px] font-medium leading-none text-black">{edition.tagsLabel}</h2>
+                  <p className="mt-3">
+                    {article.tags.map((tag, i) => (
+                      <Fragment key={tag}>
+                        {i > 0 && ', '}
+                        <Link to={`/arkiv?tag=${encodeURIComponent(tag)}`} className="text-accent hover:underline">
+                          {tag}
+                        </Link>
+                      </Fragment>
+                    ))}
+                  </p>
+                </section>
+              )}
+              <Cite text={cite} />
+            </>
+          )}
+        </div>
+
+        <aside className="self-start border-t-[3px] border-black bg-soft text-[14px] leading-[18px] text-black">
+          <div className="space-y-3 px-3 py-3">
+            <p>
+              {published}
+              <br />
+              Utgave {citation.issue}, {citation.year}
+            </p>
+            <p>
+              Tidsskr Teb {citation.year} Vol. {citation.volume}.
+            </p>
+            <p>doi: {citation.doi}</p>
+            <p>
+              {article.visibility === 'public' ? 'Åpen tilgang' : 'Kun for medlemmer'}
+              <br />
+              Opphavsrett: {names(article.authors.map(a => a.name)) || 'Redaksjonen'}
+            </p>
+          </div>
+          <ul className="border-t border-line">
+            <li>
+              <button type="button" onClick={() => window.print()} className={`${caps} block w-full px-3 py-3 text-left text-accent hover:underline`}>
+                Skriv ut
+              </button>
+            </li>
+            {!article.locked && (
+              <li className="border-t border-line">
+                <a href="#siter" className={`${caps} block px-3 py-3 text-accent hover:underline`}>
+                  Sitér artikkelen
+                </a>
+              </li>
+            )}
+          </ul>
+        </aside>
+      </div>
+    </div>
   )
 }
