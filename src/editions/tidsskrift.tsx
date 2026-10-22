@@ -22,7 +22,7 @@ const wrap = 'mx-auto w-full max-w-[1012px] px-4'
 // Small capitals with air between the letters: an article's type, the menu, the contents
 const caps = 'font-ui text-[12px] uppercase tracking-[0.1em]'
 
-const RESEARCH = new Set(['Originalartikkel', 'Kort rapport', 'Kasuistikk', 'Oversiktsartikkel'])
+const RESEARCH = new Set(['Originalartikkel', 'Forskning', 'Kort rapport', 'Kasuistikk', 'Kasusbeskrivelse', 'Oversiktsartikkel'])
 const headline = (article: Article) => (RESEARCH.has(article.section) ? 'font-narrow font-semibold tracking-[-0.015em]' : 'font-headline font-medium')
 
 // The abstract: words in capitals before a colon (BAKGRUNN:, MATERIALE OG METODE:) start a part
