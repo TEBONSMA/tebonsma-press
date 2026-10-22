@@ -22,7 +22,7 @@ const wrap = 'mx-auto w-full max-w-[1012px] px-4'
 // Small capitals with air between the letters: an article's type, the menu, the contents
 const caps = 'font-ui text-[12px] uppercase tracking-[0.1em]'
 
-const RESEARCH = new Set(['Originalartikkel', 'Kort rapport', 'Kasuistikk', 'Oversiktsartikkel'])
+const RESEARCH = new Set(['Originalartikkel', 'Forskning', 'Kort rapport', 'Kasuistikk', 'Kasusbeskrivelse', 'Oversiktsartikkel'])
 const headline = (article: Article) => (RESEARCH.has(article.section) ? 'font-narrow font-semibold tracking-[-0.015em]' : 'font-headline font-medium')
 
 // The abstract: words in capitals before a colon (BAKGRUNN:, MATERIALE OG METODE:) start a part
@@ -326,15 +326,22 @@ function Authors({ article }: { article: Article }) {
       </button>
       {open && (
         <ul className="mt-3 space-y-2 not-italic text-ink">
-          {article.authors.map(author => (
-            <li key={author.id}>
-              <a href={memberHref(author.id)} className="group flex items-center gap-3">
-                <Avatar member={author} className="h-9 w-9 text-[12px]" />
-                <span>
-                  <span className="group-hover:underline">{authorName(author)}</span>
-                  <span className="block text-[14px] text-muted">Brorskapet TEBONSMA</span>
+          {article.authors.map((author, i) => (
+            <li key={author.id ?? `${author.name}-${i}`}>
+              {author.id ? (
+                <a href={memberHref(author.id)} className="group flex items-center gap-3">
+                  <Avatar member={author} className="h-9 w-9 text-[12px]" />
+                  <span>
+                    <span className="group-hover:underline">{authorName(author)}</span>
+                    <span className="block text-[14px] text-muted">Brorskapet TEBONSMA</span>
+                  </span>
+                </a>
+              ) : (
+                <span className="flex items-center gap-3">
+                  <Avatar member={author} className="h-9 w-9 text-[12px]" />
+                  {author.name}
                 </span>
-              </a>
+              )}
             </li>
           ))}
         </ul>
@@ -368,7 +375,8 @@ export function ArticleView({ article }: { article: Article }) {
   const { html, headings } = useMemo(() => withAnchors(article.body), [article.body])
   const cite = `${byline(article) || 'Redaksjonen'}. ${article.title}. ${citation.short}. doi: ${citation.doi}`
   const contents = [
-    article.lead && { id: 'sammendrag', text: edition.leadLabel, sub: [] },
+    // Not when the text has an abstract of its own, under its own heading
+    article.lead && !headings.some(h => h.text === edition.leadLabel) && { id: 'sammendrag', text: edition.leadLabel, sub: [] },
     html && { id: 'artikkel', text: 'Artikkel', sub: headings },
     article.tags.length > 0 && { id: 'nokkelord', text: edition.tagsLabel, sub: [] },
     { id: 'siter', text: 'Sitér artikkelen', sub: [] },
@@ -452,7 +460,7 @@ export function ArticleView({ article }: { article: Article }) {
             <p>
               {published}
               <br />
-              Utgave {citation.issue}, {citation.year}
+              {citation.label}
             </p>
             <p>
               Tidsskr Teb {citation.year} Vol. {citation.volume}.

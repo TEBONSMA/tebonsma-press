@@ -1,8 +1,7 @@
 import { apiUrl } from '../lib/api'
-import type { Member } from '../lib/press'
 
 // A member's photo, or their initials
-export default function Avatar({ member, className = 'h-8 w-8 text-[12px]' }: { member: Member; className?: string }) {
+export default function Avatar({ member, className = 'h-8 w-8 text-[12px]' }: { member: { name: string; avatar: string | null }; className?: string }) {
   if (member.avatar) return <img src={apiUrl(member.avatar)} alt="" className={`${className} shrink-0 rounded-full object-cover`} />
   const initials = member.name
     .split(/\s+/)

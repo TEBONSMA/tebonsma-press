@@ -10,8 +10,12 @@ export interface Member {
   avatar: string | null
 }
 
-// An author of an article: the member, and the name they go by in it (null for their own)
-export interface Author extends Member {
+// An author of an article: a member and the name they go by in it (null for their own), or just a
+// name, for an author without an account (id null)
+export interface Author {
+  id: string | null
+  name: string
+  avatar: string | null
   alias: string | null
 }
 
@@ -32,6 +36,8 @@ export interface Article {
   authors: Author[]
   coverImage: string | null
   coverCaption: string
+  // The journal's numbering, as printed ("1/2025"); empty for the month it came out
+  issue: string
   frontPosition: number | null
   createdAt: string
   updatedAt: string
@@ -46,11 +52,13 @@ export interface ArticleInput {
   lead: string
   body: string
   tags: string[]
-  // In byline order: the member's id, and the name they go by in this article ('' for their own)
-  authors: { id: string; alias: string }[]
+  // In byline order: the member's id and the name they go by in this article ('' for their own), or
+  // for an author without an account, no id and their name
+  authors: { id: string | null; alias: string; name: string }[]
   visibility: 'public' | 'members'
   coverImage: string | null
   coverCaption: string
+  issue: string
 }
 
 const base = `/press/${edition.id}`

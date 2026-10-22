@@ -26,7 +26,7 @@ import {
 import { useLoad } from '../../state/useLoad'
 import { useTitle } from '../../state/useTitle'
 
-const EMPTY: ArticleInput = { title: '', section: '', lead: '', body: '', tags: [], authors: [], visibility: 'members', coverImage: null, coverCaption: '' }
+const EMPTY: ArticleInput = { title: '', section: '', lead: '', body: '', tags: [], authors: [], visibility: 'members', coverImage: null, coverCaption: '', issue: '' }
 
 const inputOf = (article: Article): ArticleInput => ({
   title: article.title,
@@ -34,10 +34,11 @@ const inputOf = (article: Article): ArticleInput => ({
   lead: article.lead,
   body: article.body ?? '',
   tags: article.tags,
-  authors: article.authors.map(a => ({ id: a.id, alias: a.alias ?? '' })),
+  authors: article.authors.map(a => (a.id ? { id: a.id, alias: a.alias ?? '', name: '' } : { id: null, alias: '', name: a.name })),
   visibility: article.visibility,
   coverImage: article.coverImage,
   coverCaption: article.coverCaption,
+  issue: article.issue,
 })
 
 function Form({ token, article, members }: { token: string; article: Article | null; members: Member[] }) {
@@ -80,7 +81,8 @@ function Form({ token, article, members }: { token: string; article: Article | n
 
   // Saves what is in the form; a new article gets its own address
   const save = async () => {
-    const input = { ...draft, tags: tags() }
+    // An author without an account and without a name is left out
+    const input = { ...draft, tags: tags(), authors: draft.authors.filter(a => a.id || a.name.trim()) }
     const result = saved ? await updateArticle(token, saved.id, input) : await createArticle(token, input)
     setSaved(result)
     setDirty(false)
@@ -272,6 +274,16 @@ function Form({ token, article, members }: { token: string; article: Article | n
             ))}
           </datalist>
         </div>
+
+        {edition.id === 'tidsskrift' && (
+          <div>
+            <label htmlFor="issue" className={label}>
+              Utgave
+            </label>
+            <input id="issue" value={draft.issue} onChange={event => change({ issue: event.target.value })} placeholder="F.eks. 1/2025" maxLength={20} className={input} />
+            <p className="mt-1 font-ui text-[12px] text-muted">Som trykket. Tom: måneden saken kom ut.</p>
+          </div>
+        )}
 
         <div>
           <span className={label}>Forfattere</span>
