@@ -375,7 +375,8 @@ export function ArticleView({ article }: { article: Article }) {
   const { html, headings } = useMemo(() => withAnchors(article.body), [article.body])
   const cite = `${byline(article) || 'Redaksjonen'}. ${article.title}. ${citation.short}. doi: ${citation.doi}`
   const contents = [
-    article.lead && { id: 'sammendrag', text: edition.leadLabel, sub: [] },
+    // Not when the text has an abstract of its own, under its own heading
+    article.lead && !headings.some(h => h.text === edition.leadLabel) && { id: 'sammendrag', text: edition.leadLabel, sub: [] },
     html && { id: 'artikkel', text: 'Artikkel', sub: headings },
     article.tags.length > 0 && { id: 'nokkelord', text: edition.tagsLabel, sub: [] },
     { id: 'siter', text: 'Sitér artikkelen', sub: [] },
