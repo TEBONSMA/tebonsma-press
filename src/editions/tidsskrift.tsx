@@ -30,11 +30,13 @@ const sentence = (capitals: string) => capitals.charAt(0) + capitals.slice(1).to
 // The abstract as one run of text, for the front page and lists
 const plain = (lead: string) => lead.replace(LABEL, '').replace(/\s+/g, ' ').trim()
 
-// The journal's mark, a T in a black circle, as big as the text around it
+// The journal's mark, a T in a black circle, as big as the text around it. Drawn, so the T sits in
+// the middle whatever the font does (also in public/tidsskrift/favicon.svg and icon.svg).
 const Mark = ({ className = '' }: { className?: string }) => (
-  <span aria-hidden="true" className={`relative inline-block h-[0.56em] w-[0.56em] shrink-0 rounded-full bg-black ${className}`}>
-    <span className="absolute inset-0 flex items-center justify-center pb-[0.02em] font-headline text-[0.42em] font-bold leading-none text-white">T</span>
-  </span>
+  <svg viewBox="0 0 100 100" aria-hidden="true" className={`inline-block h-[0.56em] w-[0.56em] shrink-0 ${className}`}>
+    <circle cx="50" cy="50" r="50" fill="#000" />
+    <path fill="#fff" d="M27 25H73V40H70C69.5 34 67 32 62 32H57.5V68C57.5 70 59 71 62 71.5L65 72V75H35V72L38 71.5C41 71 42.5 70 42.5 68V32H38C33 32 30.5 34 30 40H27Z" />
+  </svg>
 )
 
 function Wordmark({ large }: { large?: boolean }) {
