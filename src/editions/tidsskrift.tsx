@@ -83,7 +83,7 @@ export function Header() {
             <span>Tidsskrift for Brorskapet TEBONSMA</span>
             <span>{longDate()}</span>
           </div>
-          <div className={`flex md:justify-center ${front ? 'pb-5 pt-4 md:pb-7 md:pt-3' : 'pb-4 pt-3 md:pt-1'}`}>
+          <div className={`flex md:justify-center ${front ? 'pb-1 pt-4 md:pb-7 md:pt-3' : 'pb-1 pt-3 md:pb-4 md:pt-1'}`}>
             <Link to="/" aria-label={`${edition.name}, forsiden`}>
               <Wordmark large={front} />
             </Link>
