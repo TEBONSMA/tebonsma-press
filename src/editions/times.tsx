@@ -14,7 +14,7 @@ import { FamilyLinks, MenuButton, Tags, UserLinks } from './shared'
 // The Tebonsma Times: a newspaper. Black on white, the fraktur masthead, a top story and a grid.
 
 const navItem = ({ isActive }: { isActive: boolean }) =>
-  `whitespace-nowrap px-3 py-2.5 font-ui text-[12px] font-bold uppercase tracking-[0.08em] ${isActive ? 'underline underline-offset-[6px]' : 'hover:underline hover:underline-offset-[6px]'}`
+  `whitespace-nowrap px-1.5 py-2.5 font-ui lg:px-3 text-[12px] font-bold uppercase tracking-[0.08em] ${isActive ? 'underline underline-offset-[6px]' : 'hover:underline hover:underline-offset-[6px]'}`
 
 // On a phone, a list under the masthead, opened with the menu button
 const mobileItem = ({ isActive }: { isActive: boolean }) =>
@@ -44,7 +44,7 @@ export function Header() {
         </Link>
       </div>
       <nav aria-label="Seksjoner" className={`border-t-4 border-double border-ink md:border-b-4 ${menu.open ? 'border-b-4' : ''}`}>
-        <ul className="hidden justify-center overflow-x-auto overflow-y-hidden [scrollbar-width:none] md:flex">
+        <ul className="hidden justify-center-safe overflow-x-auto overflow-y-hidden [scrollbar-width:none] md:flex">
           {items.map(item => (
             <li key={item.to}>
               <NavLink to={item.to} end={item.to === '/'} className={navItem}>
