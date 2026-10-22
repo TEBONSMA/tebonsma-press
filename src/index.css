@@ -1,0 +1,154 @@
+@import 'tailwindcss';
+@import '@fontsource/source-serif-4/400.css';
+@import '@fontsource/source-serif-4/400-italic.css';
+@import '@fontsource/source-serif-4/600.css';
+@import '@fontsource/source-serif-4/700.css';
+@import '@fontsource/source-serif-4/800.css';
+@import '@fontsource/libre-franklin/400.css';
+@import '@fontsource/libre-franklin/600.css';
+@import '@fontsource/libre-franklin/700.css';
+@import '@fontsource/libre-franklin/800.css';
+@import '@fontsource/source-sans-3/400.css';
+@import '@fontsource/source-sans-3/600.css';
+@import '@fontsource/source-sans-3/700.css';
+
+/* The two papers: the newspaper is black on white with Franklin for labels, the journal has a
+   petrol accent and Source Sans. Set on <html data-edition>. */
+:root {
+  --paper: #ffffff;
+  --ink: #121212;
+  --muted: #5c5c5c;
+  --line: #dedede;
+  --soft: #f5f2ea;
+  --accent: #121212;
+  --accent-ink: #ffffff;
+  --ui: 'Libre Franklin', 'Helvetica Neue', Arial, sans-serif;
+}
+
+:root[data-edition='tidsskrift'] {
+  --soft: #eef4f5;
+  --accent: #1b4f5e;
+  --ui: 'Source Sans 3', 'Helvetica Neue', Arial, sans-serif;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-soft: var(--soft);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --font-serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --font-ui: var(--ui);
+}
+
+html {
+  background: var(--paper);
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-serif);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* An article's text, from the editor */
+@layer components {
+  .article-body {
+    font-size: 1.1875rem;
+    line-height: 1.7;
+  }
+
+  .article-body > * + * {
+    margin-top: 1.1em;
+  }
+
+  .article-body h2 {
+    margin-top: 1.8em;
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.25;
+  }
+
+  .article-body h3 {
+    margin-top: 1.5em;
+    font-size: 1.2rem;
+    font-weight: 700;
+  }
+
+  .article-body a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .article-body ul {
+    list-style: disc;
+    padding-left: 1.4em;
+  }
+
+  .article-body ol {
+    list-style: decimal;
+    padding-left: 1.4em;
+  }
+
+  .article-body li + li {
+    margin-top: 0.35em;
+  }
+
+  .article-body blockquote {
+    margin: 1.6em 0;
+    border-left: 3px solid var(--accent);
+    padding: 0.1em 0 0.1em 1em;
+    font-size: 1.45rem;
+    font-style: italic;
+    line-height: 1.4;
+  }
+
+  .article-body img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .article-body figcaption {
+    margin-top: 0.5em;
+    font-family: var(--font-ui);
+    font-size: 0.875rem;
+    color: var(--muted);
+  }
+
+  .article-body hr {
+    border: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  /* The journal: section headings as in a scientific paper */
+  :root[data-edition='tidsskrift'] .article-body h2 {
+    font-family: var(--font-ui);
+    font-size: 1.05rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  :root[data-edition='tidsskrift'] .article-body blockquote {
+    font-size: 1.15rem;
+  }
+
+  /* The editor's text box looks like the article */
+  .editor-body .ProseMirror {
+    min-height: 22rem;
+    outline: none;
+  }
+
+  .editor-body .ProseMirror p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    float: left;
+    height: 0;
+    color: var(--muted);
+    pointer-events: none;
+  }
+}
