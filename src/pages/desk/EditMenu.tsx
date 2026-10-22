@@ -68,7 +68,7 @@ function Menu({ token, initial, inUse }: { token: string; initial: string[]; inU
   return (
     <div className="max-w-2xl">
       <p className="font-ui text-[14px] text-muted">
-        Seksjonene vises i menyen øverst, i denne rekkefølgen. Forsiden og Arkiv er alltid med. En sak kan ha en seksjon som ikke står i menyen.
+        Seksjonene vises i menyen øverst, i denne rekkefølgen. {edition.alwaysInMenu} En sak kan ha en seksjon som ikke står i menyen.
       </p>
       <ol className="mt-5 space-y-2">
         {sections.map((section, i) => (

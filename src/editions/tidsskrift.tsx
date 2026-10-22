@@ -106,7 +106,7 @@ export function Header() {
                   </NavLink>
                 </li>
               ))}
-              <li className="ml-auto lg:ml-0">
+              <li className={sections.length > 0 ? 'ml-auto lg:ml-0' : 'ml-auto'}>
                 <NavLink to="/arkiv" className={navItem}>
                   Søk <Search size={14} aria-hidden="true" />
                 </NavLink>

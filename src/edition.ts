@@ -13,6 +13,8 @@ export interface Edition {
   // The section of an article, as the paper calls it
   sectionLabel: string
   sectionsLabel: string
+  // What the menu always has, besides the sections the editors choose
+  alwaysInMenu: string
   leadLabel: string
   tagsLabel: string
   // Suggested when writing; any other may be used
@@ -28,6 +30,7 @@ const EDITIONS: Record<EditionId, Edition> = {
     sectionPath: 'seksjon',
     sectionLabel: 'Seksjon',
     sectionsLabel: 'Seksjoner',
+    alwaysInMenu: 'Forsiden og Arkiv er alltid med.',
     leadLabel: 'Ingress',
     tagsLabel: 'Stikkord',
     sections: ['Innenriks', 'Pulebord', 'Kultur', 'Reise', 'Meninger', 'Rett og vrang', 'Distrikt', 'Sport'],
@@ -40,6 +43,7 @@ const EDITIONS: Record<EditionId, Edition> = {
     sectionPath: 'type',
     sectionLabel: 'Artikkeltype',
     sectionsLabel: 'Artikkeltyper',
+    alwaysInMenu: 'Søk er alltid med, og navnet øverst leder til forsiden.',
     leadLabel: 'Sammendrag',
     tagsLabel: 'Nøkkelord',
     sections: ['Originalartikkel', 'Kasuistikk', 'Oversiktsartikkel', 'Leder', 'Kronikk', 'Brev til redaktøren'],
