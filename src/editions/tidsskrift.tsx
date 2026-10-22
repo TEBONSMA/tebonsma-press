@@ -459,7 +459,7 @@ export function ArticleView({ article }: { article: Article }) {
             <p>
               {published}
               <br />
-              Utgave {citation.issue}, {citation.year}
+              {citation.label}
             </p>
             <p>
               Tidsskr Teb {citation.year} Vol. {citation.volume}.

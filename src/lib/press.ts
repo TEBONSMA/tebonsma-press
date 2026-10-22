@@ -36,6 +36,8 @@ export interface Article {
   authors: Author[]
   coverImage: string | null
   coverCaption: string
+  // The journal's numbering, as printed ("1/2025"); empty for the month it came out
+  issue: string
   frontPosition: number | null
   createdAt: string
   updatedAt: string
@@ -56,6 +58,7 @@ export interface ArticleInput {
   visibility: 'public' | 'members'
   coverImage: string | null
   coverCaption: string
+  issue: string
 }
 
 const base = `/press/${edition.id}`
