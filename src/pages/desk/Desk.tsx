@@ -4,38 +4,48 @@ import DeskGuard from '../../components/desk/DeskGuard'
 import { Loading, Problem } from '../../components/Status'
 import { button, kicker } from '../../components/styles'
 import { articleHref, edition } from '../../edition'
-import { names, when } from '../../lib/format'
-import { listDesk } from '../../lib/press'
+import { ahead, names, when } from '../../lib/format'
+import { listDesk, type Article } from '../../lib/press'
 import { useLoad } from '../../state/useLoad'
 import { useTitle } from '../../state/useTitle'
 
-// The editors' list: drafts first, then what is published
+type Tab = 'draft' | 'scheduled' | 'published'
+const TABS: { tab: Tab; name: string; empty: string }[] = [
+  { tab: 'draft', name: 'Utkast', empty: 'Ingen utkast. Skriv en ny sak.' },
+  { tab: 'scheduled', name: 'Planlagt', empty: 'Ingenting er planlagt.' },
+  { tab: 'published', name: 'Publisert', empty: 'Ingenting publisert ennå.' },
+]
+const tabOf = (article: Article): Tab => (article.status === 'draft' ? 'draft' : article.scheduled ? 'scheduled' : 'published')
+
+// The editors' list: drafts, what is set to be published later, and what is out
 function DeskList({ token }: { token: string }) {
   const { data, error, loading } = useLoad(() => listDesk(token), `desk:${token}`)
-  const [tab, setTab] = useState<'draft' | 'published'>('draft')
+  const [tab, setTab] = useState<Tab>('draft')
   if (loading) return <Loading />
   if (error || !data) return <Problem message={error ?? 'Noe gikk galt'} />
-  const shown = data.filter(article => article.status === tab)
-  const count = (status: 'draft' | 'published') => data.filter(article => article.status === status).length
+  // The next to come out first
+  const shown = data.filter(article => tabOf(article) === tab)
+  if (tab === 'scheduled') shown.sort((a, b) => a.publishedAt!.localeCompare(b.publishedAt!))
+  const count = (which: Tab) => data.filter(article => tabOf(article) === which).length
 
   return (
     <div>
       <div className="flex gap-1 border-b border-line font-ui text-[14px]" role="tablist">
-        {(['draft', 'published'] as const).map(status => (
+        {TABS.map(({ tab: which, name }) => (
           <button
-            key={status}
+            key={which}
             type="button"
             role="tab"
-            aria-selected={tab === status}
-            onClick={() => setTab(status)}
-            className={`-mb-px border-b-2 px-4 py-2.5 font-semibold ${tab === status ? 'border-ink' : 'border-transparent text-muted hover:text-ink'}`}
+            aria-selected={tab === which}
+            onClick={() => setTab(which)}
+            className={`-mb-px border-b-2 px-4 py-2.5 font-semibold ${tab === which ? 'border-ink' : 'border-transparent text-muted hover:text-ink'}`}
           >
-            {status === 'draft' ? 'Utkast' : 'Publisert'} ({count(status)})
+            {name} ({count(which)})
           </button>
         ))}
       </div>
       {shown.length === 0 ? (
-        <p className="py-10 font-ui text-muted">{tab === 'draft' ? 'Ingen utkast. Skriv en ny sak.' : 'Ingenting publisert ennå.'}</p>
+        <p className="py-10 font-ui text-muted">{TABS.find(t => t.tab === tab)!.empty}</p>
       ) : (
         <ul className="divide-y divide-line">
           {shown.map(article => (
@@ -51,12 +61,16 @@ function DeskList({ token }: { token: string }) {
                 </Link>
                 <p className="font-ui text-[13px] text-muted">
                   {article.authors.length > 0 && `${names(article.authors.map(a => a.name))} · `}
-                  {article.status === 'published' && article.publishedAt ? `Publisert ${when(article.publishedAt).toLowerCase()}` : `Endret ${when(article.updatedAt).toLowerCase()}`}
+                  {article.scheduled
+                    ? `Publiseres ${ahead(article.publishedAt!)}`
+                    : article.status === 'published' && article.publishedAt
+                      ? `Publisert ${when(article.publishedAt).toLowerCase()}`
+                      : `Endret ${when(article.updatedAt).toLowerCase()}`}
                 </p>
               </div>
               <div className="flex gap-2">
                 <Link to={articleHref(article.slug)} className={`${button.secondary} h-9 px-3 text-[14px]`}>
-                  {article.status === 'draft' ? 'Forhåndsvis' : 'Vis'}
+                  {tabOf(article) === 'published' ? 'Vis' : 'Forhåndsvis'}
                 </Link>
                 <Link to={`/redaksjon/sak/${article.id}`} className={`${button.secondary} h-9 px-3 text-[14px]`}>
                   Rediger
