@@ -1,5 +1,5 @@
 import { names, when } from '../lib/format'
-import type { Article } from '../lib/press'
+import { authorName, type Article } from '../lib/press'
 import Avatar from './Avatar'
 
 // Who wrote it and when, with their photos
@@ -14,7 +14,7 @@ export default function Byline({ article, photos = true }: { article: Article; p
         </div>
       )}
       <div className="leading-snug">
-        {article.authors.length > 0 && <div className="font-semibold">{names(article.authors.map(a => a.name))}</div>}
+        {article.authors.length > 0 && <div className="font-semibold">{names(article.authors.map(authorName))}</div>}
         {article.publishedAt && <div className="text-muted">{when(article.publishedAt)}</div>}
       </div>
     </div>

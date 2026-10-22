@@ -34,7 +34,7 @@ const inputOf = (article: Article): ArticleInput => ({
   lead: article.lead,
   body: article.body ?? '',
   tags: article.tags,
-  authors: article.authors.map(a => a.id),
+  authors: article.authors.map(a => ({ id: a.id, alias: a.alias ?? '' })),
   visibility: article.visibility,
   coverImage: article.coverImage,
   coverCaption: article.coverCaption,

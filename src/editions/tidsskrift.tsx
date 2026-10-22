@@ -6,7 +6,7 @@ import Avatar from '../components/Avatar'
 import Picture from '../components/Picture'
 import { articleHref, edition, sectionHref } from '../edition'
 import { ahead, longDate, names, shortDate } from '../lib/format'
-import type { Article } from '../lib/press'
+import { authorName, type Article } from '../lib/press'
 import { citationOf } from '../lib/citation'
 import { useMobileMenu } from '../state/useMobileMenu'
 import { useSections } from '../state/useSections'
@@ -166,7 +166,7 @@ function Kicker({ article }: { article: Article }) {
   )
 }
 
-const byline = (article: Article) => article.authors.map(a => a.name).join(', ')
+const byline = (article: Article) => article.authors.map(authorName).join(', ')
 
 function Title({ article, as: Tag = 'h2', className }: { article: Article; as?: 'h2' | 'h3'; className: string }) {
   return (
@@ -328,7 +328,7 @@ function Authors({ article }: { article: Article }) {
             <li key={author.id} className="flex items-center gap-3">
               <Avatar member={author} className="h-9 w-9 text-[12px]" />
               <span>
-                {author.name}
+                {authorName(author)}
                 <span className="block text-[14px] text-muted">Brorskapet TEBONSMA</span>
               </span>
             </li>
@@ -457,7 +457,7 @@ export function ArticleView({ article }: { article: Article }) {
             <p>
               {article.visibility === 'public' ? 'Åpen tilgang' : 'Kun for medlemmer'}
               <br />
-              Opphavsrett: {names(article.authors.map(a => a.name)) || 'Redaksjonen'}
+              Opphavsrett: {names(article.authors.map(authorName)) || 'Redaksjonen'}
             </p>
           </div>
           <ul className="border-t border-line">

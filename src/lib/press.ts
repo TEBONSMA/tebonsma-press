@@ -10,6 +10,14 @@ export interface Member {
   avatar: string | null
 }
 
+// An author of an article: the member, and the name they go by in it (null for their own)
+export interface Author extends Member {
+  alias: string | null
+}
+
+// The name an author goes by in the article
+export const authorName = (author: Author) => author.alias ?? author.name
+
 export interface Article {
   id: string
   slug: string
@@ -21,7 +29,7 @@ export interface Article {
   // null in lists
   body: string | null
   tags: string[]
-  authors: Member[]
+  authors: Author[]
   coverImage: string | null
   coverCaption: string
   frontPosition: number | null
@@ -38,8 +46,8 @@ export interface ArticleInput {
   lead: string
   body: string
   tags: string[]
-  // Member ids, in byline order
-  authors: string[]
+  // In byline order: the member's id, and the name they go by in this article ('' for their own)
+  authors: { id: string; alias: string }[]
   visibility: 'public' | 'members'
   coverImage: string | null
   coverCaption: string
