@@ -1,5 +1,6 @@
+import { Plugin } from '@tiptap/pm/state'
 import { Node, ReactNodeViewRenderer } from '@tiptap/react'
-import type { Embed as EmbedAttributes } from '../../lib/embeds'
+import { embedsIn, type Embed as EmbedAttributes } from '../../lib/embeds'
 import EmbedView from './EmbedView'
 
 const number = (value: string | null) => (value && /^\d+$/.test(value) ? Number(value) : null)
@@ -33,5 +34,24 @@ export const Embed = Node.create({
 
   addNodeView() {
     return ReactNodeViewRenderer(EmbedView)
+  },
+
+  // Embed code pasted into the text becomes the graph or video, not the code as text
+  addProseMirrorPlugins() {
+    const editor = this.editor
+    return [
+      new Plugin({
+        props: {
+          handlePaste: (_view, event) => {
+            const text = event.clipboardData?.getData('text/plain').trim() ?? ''
+            if (!text.startsWith('<') || !/<iframe[\s>]/i.test(text)) return false
+            const embeds = embedsIn(text)
+            if (!embeds.length) return false
+            editor.chain().focus().insertContent(embedContent(embeds)).run()
+            return true
+          },
+        },
+      }),
+    ]
   },
 })

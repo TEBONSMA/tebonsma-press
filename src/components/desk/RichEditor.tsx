@@ -206,7 +206,7 @@ export default function RichEditor({ token, initialHtml, onChange }: { token: st
             Innbyggingskode
           </label>
           <p className="mb-2 font-ui text-[13px] text-muted">
-            Lim inn koden fra Datawrapper, YouTube, Google Maps eller lignende. Rammen (iframe) blir med, skript i koden tas ikke med.
+            Lim inn koden fra Datawrapper, YouTube, Google Maps eller lignende. Rammen (iframe) blir med, skript i koden tas ikke med. Koden kan også limes rett inn i teksten.
           </p>
           <textarea
             id="embed-code"
