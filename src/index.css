@@ -168,6 +168,26 @@ body {
     border-top: 1px solid var(--line);
   }
 
+  /* Graphs and videos from other sites, the column's width: a video keeps its shape, a
+     Datawrapper graph gets its height from the graph */
+  .article-body iframe {
+    display: block;
+    width: 100%;
+    border: 0;
+  }
+
+  .article-body iframe[style*='aspect-ratio'] {
+    height: auto;
+  }
+
+  .editor-body .embed-block {
+    border: 1px solid var(--line);
+  }
+
+  .editor-body .embed-block.is-selected {
+    outline: 3px solid var(--accent);
+  }
+
   /* The journal: Georgia in a narrow column, headings over a thin line, quotes as fact boxes */
   :root[data-edition='tidsskrift'] .article-body {
     font-size: 1rem;
