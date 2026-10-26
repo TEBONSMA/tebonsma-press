@@ -4,6 +4,7 @@ import { EditorContent, useEditor, useEditorState } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import {
   Bold,
+  CodeXml,
   Heading2,
   Heading3,
   ImagePlus,
@@ -19,8 +20,11 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { apiUrl, errorMessage } from '../../lib/api'
+import { embedsIn } from '../../lib/embeds'
 import { toJpeg } from '../../lib/image'
 import { uploadImage } from '../../lib/press'
+import { button, input } from '../styles'
+import { Embed, embedContent } from './embed'
 import { Figure, type FigureSize } from './figure'
 
 interface ToolProps {
@@ -48,11 +52,14 @@ const Tool = ({ label, icon: Icon, active, disabled, onClick }: ToolProps) => (
 )
 
 // The article's text, with the formatting an article may have (what the API lets through):
-// headings, bold, italic, underline, links, quotes, lists, lines and the paper's own pictures
+// headings, bold, italic, underline, links, quotes, lists, lines, the paper's own pictures, and
+// graphs and videos from other sites
 export default function RichEditor({ token, initialHtml, onChange }: { token: string; initialHtml: string; onChange: (html: string) => void }) {
   const fileRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // The embed code being pasted in, when that box is open
+  const [embedCode, setEmbedCode] = useState<string | null>(null)
 
   const editor = useEditor({
     extensions: [
@@ -65,6 +72,7 @@ export default function RichEditor({ token, initialHtml, onChange }: { token: st
       // Bare pictures from before figures, shown in full width
       Image,
       Figure,
+      Embed,
     ],
     // Pictures are kept as /press/images/<id>; in the editor they need the API's address
     content: initialHtml.replace(/src="\/press\/images\//g, `src="${apiUrl('/press/images/')}`),
@@ -126,6 +134,17 @@ export default function RichEditor({ token, initialHtml, onChange }: { token: st
     }
   }
 
+  const addEmbed = () => {
+    const embeds = embedsIn(embedCode ?? '')
+    if (!embeds.length) {
+      setError('Fant ingen iframe med en https-adresse i koden. Bruk innbyggingskoden fra for eksempel Datawrapper eller YouTube.')
+      return
+    }
+    setError(null)
+    setEmbedCode(null)
+    editor.chain().focus().insertContent(embedContent(embeds)).run()
+  }
+
   return (
     <div className="rounded-md border border-line">
       <div className="sticky top-0 z-10 flex flex-wrap gap-0.5 border-b border-line bg-paper/95 p-1 backdrop-blur" role="toolbar" aria-label="Formatering">
@@ -142,6 +161,7 @@ export default function RichEditor({ token, initialHtml, onChange }: { token: st
         <Tool label="Nummerert liste" icon={ListOrdered} active={active.ordered} onClick={() => editor.chain().focus().toggleOrderedList().run()} />
         <Tool label="Skillelinje" icon={Minus} onClick={() => editor.chain().focus().setHorizontalRule().run()} />
         <Tool label={uploading ? 'Laster opp bilde …' : 'Sett inn bilde'} icon={ImagePlus} disabled={uploading} onClick={() => fileRef.current?.click()} />
+        <Tool label="Sett inn graf eller video (HTML-kode)" icon={CodeXml} active={embedCode !== null} onClick={() => setEmbedCode(embedCode === null ? '' : null)} />
         {active.figure && (
           <>
             <span className="mx-1 w-px self-stretch bg-line" />
@@ -180,6 +200,33 @@ export default function RichEditor({ token, initialHtml, onChange }: { token: st
           }}
         />
       </div>
+      {embedCode !== null && (
+        <div className="border-b border-line bg-soft px-4 py-3">
+          <label htmlFor="embed-code" className="block font-ui text-[13px] font-semibold">
+            Innbyggingskode
+          </label>
+          <p className="mb-2 font-ui text-[13px] text-muted">
+            Lim inn koden fra Datawrapper, YouTube, Google Maps eller lignende. Rammen (iframe) blir med, skript i koden tas ikke med.
+          </p>
+          <textarea
+            id="embed-code"
+            rows={4}
+            value={embedCode}
+            onChange={event => setEmbedCode(event.target.value)}
+            placeholder={'<iframe src="https://datawrapper.dwcdn.net/…"></iframe>'}
+            className={`${input} font-mono text-[13px]`}
+            autoFocus
+          />
+          <div className="mt-2 flex gap-2">
+            <button type="button" className={button.primary} disabled={!embedCode.trim()} onClick={addEmbed}>
+              Sett inn
+            </button>
+            <button type="button" className={button.secondary} onClick={() => (setEmbedCode(null), setError(null))}>
+              Avbryt
+            </button>
+          </div>
+        </div>
+      )}
       {error && <p className="border-b border-line bg-[#fbe9e7] px-4 py-2 font-ui text-[14px] text-[#b3261e]">{error}</p>}
       <EditorContent editor={editor} className="editor-body" />
     </div>

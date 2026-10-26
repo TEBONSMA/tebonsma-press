@@ -180,6 +180,14 @@ body {
     height: auto;
   }
 
+  .editor-body .embed-block {
+    border: 1px solid var(--line);
+  }
+
+  .editor-body .embed-block.is-selected {
+    outline: 3px solid var(--accent);
+  }
+
   /* The journal: Georgia in a narrow column, headings over a thin line, quotes as fact boxes */
   :root[data-edition='tidsskrift'] .article-body {
     font-size: 1rem;
