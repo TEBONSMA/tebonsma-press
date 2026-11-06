@@ -5,6 +5,7 @@ import ArticleBody from '../components/ArticleBody'
 import AuthorNames from '../components/AuthorNames'
 import Avatar from '../components/Avatar'
 import Picture from '../components/Picture'
+import PushToggle from '../components/PushToggle'
 import { articleHref, edition, sectionHref } from '../edition'
 import { ahead, longDate, names, shortDate } from '../lib/format'
 import { authorName, type Article } from '../lib/press'
@@ -148,6 +149,7 @@ export function Footer() {
             Tebonsma Tidsskrift er Brorskapet TEBONSMAs vitenskapelige tidsskrift. Fagfellevurdert, av og til. Synspunktene er forfatternes egne, og ofte bare deres.
           </p>
           <p className="mt-2">ISSN 6767-0021 (nett)</p>
+          <PushToggle className="mt-5 text-[15px]" />
           <FamilyLinks className="mt-6 justify-center uppercase tracking-[0.1em] text-accent" />
         </div>
       </div>

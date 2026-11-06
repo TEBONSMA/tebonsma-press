@@ -2,6 +2,7 @@ import { Link, NavLink } from 'react-router-dom'
 import ArticleBody from '../components/ArticleBody'
 import Byline from '../components/Byline'
 import Picture from '../components/Picture'
+import PushToggle from '../components/PushToggle'
 import { kicker } from '../components/styles'
 import { articleHref, edition, sectionHref } from '../edition'
 import { longDate, when } from '../lib/format'
@@ -78,6 +79,7 @@ export function Footer() {
           <img src="/times/masthead.svg" alt={edition.name} className="h-8 w-auto" />
           <p className="mt-3 font-ui text-[13px] text-muted">{edition.tagline}</p>
           <p className="mt-1 font-ui text-[13px] text-muted">Ansvarlig redaktør: Petter «Abraham» Lona</p>
+          <PushToggle className="mt-4 text-[13px]" />
         </div>
         <FamilyLinks />
       </div>

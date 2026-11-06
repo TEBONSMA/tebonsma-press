@@ -6,6 +6,10 @@ export type EditionId = 'times' | 'tidsskrift'
 export interface Edition {
   id: EditionId
   name: string
+  // On a phone's Home Screen, and in what the notifications say
+  shortName: string
+  // What it puts out: "Få beskjed når det kommer nye saker"
+  newArticles: string
   tagline: string
   // In addresses: /sak/<slug>, /seksjon/<navn>
   articlePath: string
@@ -25,6 +29,8 @@ const EDITIONS: Record<EditionId, Edition> = {
   times: {
     id: 'times',
     name: 'The Tebonsma Times',
+    shortName: 'Times',
+    newArticles: 'nye saker',
     tagline: 'Gjengens avis. Usaklig siden 2021.',
     articlePath: 'sak',
     sectionPath: 'seksjon',
@@ -38,6 +44,8 @@ const EDITIONS: Record<EditionId, Edition> = {
   tidsskrift: {
     id: 'tidsskrift',
     name: 'Tebonsma Tidsskrift',
+    shortName: 'Tidsskrift',
+    newArticles: 'nye artikler',
     tagline: 'Tidsskrift for Brorskapet TEBONSMA. Fagfellevurdert, av og til.',
     articlePath: 'artikkel',
     sectionPath: 'type',
