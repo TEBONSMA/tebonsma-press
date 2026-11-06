@@ -13,6 +13,8 @@ document.documentElement.dataset.edition = edition.id
 if (window.parent !== window && window.location.pathname === '/auth/callback') {
   void userManager.signinSilentCallback()
 } else {
+  // Shows push notifications (public/sw.js), with this paper's name and icons
+  if ('serviceWorker' in navigator) void navigator.serviceWorker.register(`/sw.js?edition=${edition.id}`)
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
       <App />
